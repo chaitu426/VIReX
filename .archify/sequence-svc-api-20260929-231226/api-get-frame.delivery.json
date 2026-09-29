@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "receiptId": "51e33a31-90f1-4c06-a708-bdf975454760",
+  "status": "current",
+  "command": "deliver",
+  "type": "sequence",
+  "input": "C:\\Users\\chaitanya.abhade\\Documents\\java\\clproject\\.archify\\sequence-svc-api-20260929-231226\\api-get-frame.json",
+  "output": "C:\\Users\\chaitanya.abhade\\Documents\\java\\clproject\\.archify\\sequence-svc-api-20260929-231226\\api-get-frame.html",
+  "specification": {
+    "sha256": "2847383c29f4c119ecc901b2190c2a68386713e2e45a19727bfa564e467bf1ea",
+    "bytes": 3640
+  },
+  "artifact": {
+    "sha256": "6798eba3fc655a95d66af2c23ee60cdc677523bb0a783b9f4023249b48561008",
+    "bytes": 753112
+  }
+}

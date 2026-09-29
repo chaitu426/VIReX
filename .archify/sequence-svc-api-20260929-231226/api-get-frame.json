@@ -1,0 +1,182 @@
+{
+  "schema_version": 1,
+  "diagram_type": "sequence",
+  "meta": {
+    "title": "getFrame(t) — Request to Response",
+    "subtitle": "Returns the decoded picture at time t together with everything the semantic stream knows about it.",
+    "output": "api-get-frame.html",
+    "viewBox": [
+      1000,
+      610
+    ],
+    "column_fit": "spread",
+    "quality_profile": "showcase",
+    "legend": {
+      "mode": "auto",
+      "entries": {
+        "emphasis": {
+          "label": "API request"
+        },
+        "return": {
+          "label": "Response"
+        },
+        "dashed": {
+          "label": "Only when needed"
+        },
+        "default": {
+          "label": "Internal call"
+        }
+      }
+    }
+  },
+  "participants": [
+    {
+      "id": "caller",
+      "type": "external",
+      "label": "Caller",
+      "sublabel": "AI agent · app"
+    },
+    {
+      "id": "api",
+      "type": "backend",
+      "label": "Semantic Video API",
+      "sublabel": "Go REST / gRPC"
+    },
+    {
+      "id": "index",
+      "type": "database",
+      "label": "Index Reader",
+      "sublabel": "time · entity"
+    },
+    {
+      "id": "sdec",
+      "type": "backend",
+      "label": "Semantic Decoder",
+      "sublabel": "blocks → SVIR"
+    },
+    {
+      "id": "pdec",
+      "type": "cloud",
+      "label": "Pixel Decoder",
+      "sublabel": "FFmpeg seek"
+    }
+  ],
+  "segments": [
+    {
+      "from": 170,
+      "to": 422,
+      "label": "GET /frame?t=10.5"
+    }
+  ],
+  "messages": [
+    {
+      "id": "m1",
+      "from": "caller",
+      "to": "api",
+      "y": 194,
+      "label": "GET /frame?t=10.5",
+      "variant": "emphasis"
+    },
+    {
+      "id": "m2",
+      "from": "api",
+      "to": "index",
+      "y": 224,
+      "label": "find blocks at t",
+      "variant": "default"
+    },
+    {
+      "id": "m3",
+      "from": "index",
+      "to": "api",
+      "y": 254,
+      "label": "offsets, key frame",
+      "variant": "return"
+    },
+    {
+      "id": "m4",
+      "from": "api",
+      "to": "pdec",
+      "y": 284,
+      "label": "seek key frame, decode to t",
+      "variant": "default"
+    },
+    {
+      "id": "m5",
+      "from": "pdec",
+      "to": "api",
+      "y": 314,
+      "label": "frame pixels",
+      "variant": "return"
+    },
+    {
+      "id": "m6",
+      "from": "api",
+      "to": "sdec",
+      "y": 344,
+      "label": "decode blocks at t",
+      "variant": "default"
+    },
+    {
+      "id": "m7",
+      "from": "sdec",
+      "to": "api",
+      "y": 374,
+      "label": "objects · text · actions",
+      "variant": "return"
+    },
+    {
+      "id": "m8",
+      "from": "api",
+      "to": "caller",
+      "y": 404,
+      "label": "frame + semantics",
+      "variant": "return"
+    }
+  ],
+  "activations": [
+    {
+      "participant": "index",
+      "from": 218,
+      "to": 260,
+      "type": "database"
+    },
+    {
+      "participant": "pdec",
+      "from": 278,
+      "to": 320,
+      "type": "cloud"
+    },
+    {
+      "participant": "sdec",
+      "from": 338,
+      "to": 380,
+      "type": "backend"
+    },
+    {
+      "participant": "api",
+      "from": 188,
+      "to": 412,
+      "type": "backend"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "How it works",
+      "items": [
+        "Temporal index maps t to semantic blocks and the nearest key frame",
+        "Pixel decoder seeks to that key frame and decodes forward to t",
+        "Semantic decoder reads only the blocks for t"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "Used for",
+      "items": [
+        "Showing a frame with its overlays",
+        "Visual verification by an agent"
+      ]
+    }
+  ]
+}

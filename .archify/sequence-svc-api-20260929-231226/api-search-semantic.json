@@ -1,0 +1,127 @@
+{
+  "schema_version": 1,
+  "diagram_type": "sequence",
+  "meta": {
+    "title": "searchSemantic(query) — Request to Response",
+    "subtitle": "Finds when something happens in the video using the text, event and vector indexes.",
+    "output": "api-search-semantic.html",
+    "viewBox": [
+      1000,
+      540
+    ],
+    "column_fit": "spread",
+    "quality_profile": "showcase",
+    "legend": {
+      "mode": "auto",
+      "entries": {
+        "emphasis": {
+          "label": "API request"
+        },
+        "return": {
+          "label": "Response"
+        },
+        "dashed": {
+          "label": "Only when needed"
+        },
+        "default": {
+          "label": "Internal call"
+        }
+      }
+    }
+  },
+  "participants": [
+    {
+      "id": "caller",
+      "type": "external",
+      "label": "Caller",
+      "sublabel": "AI agent · app"
+    },
+    {
+      "id": "api",
+      "type": "backend",
+      "label": "Semantic Video API",
+      "sublabel": "Go REST / gRPC"
+    },
+    {
+      "id": "index",
+      "type": "database",
+      "label": "Index Reader",
+      "sublabel": "time · entity"
+    }
+  ],
+  "segments": [
+    {
+      "from": 170,
+      "to": 302,
+      "label": "GET /search?q=teacher writing on board"
+    }
+  ],
+  "messages": [
+    {
+      "id": "m1",
+      "from": "caller",
+      "to": "api",
+      "y": 194,
+      "label": "GET /search?q=...",
+      "variant": "emphasis"
+    },
+    {
+      "id": "m2",
+      "from": "api",
+      "to": "index",
+      "y": 224,
+      "label": "text · event · vector",
+      "variant": "default"
+    },
+    {
+      "id": "m3",
+      "from": "index",
+      "to": "api",
+      "y": 254,
+      "label": "ranked timestamps",
+      "variant": "return"
+    },
+    {
+      "id": "m4",
+      "from": "api",
+      "to": "caller",
+      "y": 284,
+      "label": "time ranges + scores",
+      "variant": "return"
+    }
+  ],
+  "activations": [
+    {
+      "participant": "index",
+      "from": 218,
+      "to": 260,
+      "type": "database"
+    },
+    {
+      "participant": "api",
+      "from": 188,
+      "to": 292,
+      "type": "backend"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "How it works",
+      "items": [
+        "Query terms hit the text and event inverted indexes",
+        "Optional embedding lookup adds vector matches",
+        "Results are merged and ranked by score"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "Example result",
+      "items": [
+        "04:12 - 04:31",
+        "07:44 - 08:10",
+        "12:02 - 12:26"
+      ]
+    }
+  ]
+}

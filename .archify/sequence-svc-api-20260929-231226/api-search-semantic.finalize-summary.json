@@ -1,0 +1,66 @@
+{
+  "schemaVersion": 1,
+  "ok": false,
+  "command": "finalize",
+  "status": "fail",
+  "type": "sequence",
+  "quality": "showcase",
+  "specification": {
+    "path": "C:\\Users\\chaitanya.abhade\\Documents\\java\\clproject\\.archify\\sequence-svc-api-20260929-231226\\api-search-semantic.json",
+    "sha256": "c12bb14907f809c3991ec378e54beb22b1a5854c671f9e33a03ff9fb703f2315",
+    "bytes": 2558
+  },
+  "artifact": {
+    "path": "C:\\Users\\chaitanya.abhade\\Documents\\java\\clproject\\.archify\\sequence-svc-api-20260929-231226\\api-search-semantic.html",
+    "sha256": "7eb2bde4dbb709fbbaa9ccbfb1f435d8f475e5aff8f69cfee4d5bfe1ab110bf6",
+    "bytes": 747582
+  },
+  "gates": {
+    "validate": "pass",
+    "deliver": "pass",
+    "check": "pass",
+    "browser-check": "fail"
+  },
+  "failedStage": "browser-check",
+  "diagnostics": [
+    {
+      "code": "viewer/evidence-path-conflict",
+      "severity": "error",
+      "message": "browser-check will not replace the existing unowned evidence path \"C:\\Users\\chaitanya.abhade\\Documents\\java\\clproject\\.archify\\sequence-svc-api-20260929-231226\\api-search-semantic.browser-check.json\".",
+      "subject": {
+        "artifact": "C:\\Users\\chaitanya.abhade\\Documents\\java\\clproject\\.archify\\sequence-svc-api-20260929-231226\\api-search-semantic.html",
+        "evidencePath": "C:\\Users\\chaitanya.abhade\\Documents\\java\\clproject\\.archify\\sequence-svc-api-20260929-231226\\api-search-semantic.browser-check.json"
+      },
+      "evidence": {
+        "reason": {
+          "code": "ownership-artifact-mismatch"
+        }
+      },
+      "supportedFixes": [
+        "move the conflicting file aside, or choose a separate --out-dir, then rerun browser-check"
+      ]
+    }
+  ],
+  "diagnosticSummary": {
+    "total": 1,
+    "shown": 1,
+    "truncated": false
+  },
+  "evidence": {
+    "receipt": "C:\\Users\\chaitanya.abhade\\Documents\\java\\clproject\\.archify\\sequence-svc-api-20260929-231226\\api-search-semantic.finalize.json",
+    "summaryReceipt": "C:\\Users\\chaitanya.abhade\\Documents\\java\\clproject\\.archify\\sequence-svc-api-20260929-231226\\api-search-semantic.finalize-summary.json",
+    "browserCheckReceipt": "C:\\Users\\chaitanya.abhade\\Documents\\java\\clproject\\.archify\\sequence-svc-api-20260929-231226\\api-search-semantic.browser-check.json"
+  },
+  "update": {
+    "status": "current",
+    "installedVersion": "3.0.1",
+    "availableVersion": "3.0.1",
+    "releaseNotes": null,
+    "checkedAt": "2026-09-29T17:47:16.516Z",
+    "source": "cache",
+    "noticeRequired": false,
+    "noticeText": null
+  },
+  "visualReview": "not-requested",
+  "durationMs": 10641
+}

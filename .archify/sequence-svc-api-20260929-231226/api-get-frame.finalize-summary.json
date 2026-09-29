@@ -1,0 +1,67 @@
+{
+  "schemaVersion": 1,
+  "ok": false,
+  "command": "finalize",
+  "status": "fail",
+  "type": "sequence",
+  "quality": "showcase",
+  "specification": {
+    "path": "C:\\Users\\chaitanya.abhade\\Documents\\java\\clproject\\.archify\\sequence-svc-api-20260929-231226\\api-get-frame.json",
+    "sha256": "9531ec9228e43ece48c8d2803b231e0fc7346fcbdb222716877f6826cece477c",
+    "bytes": 3640
+  },
+  "artifact": {
+    "path": "C:\\Users\\chaitanya.abhade\\Documents\\java\\clproject\\.archify\\sequence-svc-api-20260929-231226\\api-get-frame.html",
+    "sha256": "4ef2c80109a23e3de1d93e85543d253080fb5e44cab0aeb52f40be80f41aa664",
+    "bytes": 753112
+  },
+  "gates": {
+    "validate": "pass",
+    "deliver": "pass",
+    "check": "pass",
+    "browser-check": "fail"
+  },
+  "failedStage": "browser-check",
+  "diagnostics": [
+    {
+      "code": "viewer/evidence-path-conflict",
+      "severity": "error",
+      "message": "browser-check will not replace the existing unowned evidence path \"C:\\Users\\chaitanya.abhade\\Documents\\java\\clproject\\.archify\\sequence-svc-api-20260929-231226\\api-get-frame.browser-check.json\".",
+      "subject": {
+        "artifact": "C:\\Users\\chaitanya.abhade\\Documents\\java\\clproject\\.archify\\sequence-svc-api-20260929-231226\\api-get-frame.html",
+        "evidencePath": "C:\\Users\\chaitanya.abhade\\Documents\\java\\clproject\\.archify\\sequence-svc-api-20260929-231226\\api-get-frame.browser-check.json"
+      },
+      "evidence": {
+        "reason": {
+          "code": "ownership-artifact-mismatch"
+        }
+      },
+      "supportedFixes": [
+        "move the conflicting file aside, or choose a separate --out-dir, then rerun browser-check"
+      ]
+    }
+  ],
+  "diagnosticSummary": {
+    "total": 1,
+    "shown": 1,
+    "truncated": false
+  },
+  "evidence": {
+    "receipt": "C:\\Users\\chaitanya.abhade\\Documents\\java\\clproject\\.archify\\sequence-svc-api-20260929-231226\\api-get-frame.finalize.json",
+    "summaryReceipt": "C:\\Users\\chaitanya.abhade\\Documents\\java\\clproject\\.archify\\sequence-svc-api-20260929-231226\\api-get-frame.finalize-summary.json",
+    "browserCheckReceipt": "C:\\Users\\chaitanya.abhade\\Documents\\java\\clproject\\.archify\\sequence-svc-api-20260929-231226\\api-get-frame.browser-check.json"
+  },
+  "update": {
+    "status": "unavailable",
+    "installedVersion": null,
+    "availableVersion": null,
+    "releaseNotes": null,
+    "checkedAt": null,
+    "source": null,
+    "noticeRequired": false,
+    "noticeText": null,
+    "reason": "timeout"
+  },
+  "visualReview": "not-requested",
+  "durationMs": 11867
+}

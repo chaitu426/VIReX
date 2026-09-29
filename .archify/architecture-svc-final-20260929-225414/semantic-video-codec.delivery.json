@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "receiptId": "f05c65a5-6e33-4875-966f-ed9f787bf3e8",
+  "status": "current",
+  "command": "deliver",
+  "type": "architecture",
+  "input": "C:\\Users\\chaitanya.abhade\\Documents\\java\\clproject\\.archify\\architecture-svc-final-20260929-225414\\candidate.json",
+  "output": "C:\\Users\\chaitanya.abhade\\Documents\\java\\clproject\\.archify\\architecture-svc-final-20260929-225414\\semantic-video-codec.html",
+  "specification": {
+    "sha256": "1b1eb57fc685a4305735bb36243a8613c56c08d6777e44e54b20ea6b09475842",
+    "bytes": 21701
+  },
+  "artifact": {
+    "sha256": "f3d3801b5d45ca6ae7d3a27a66bd7e74b6d9e7ed703bcded3f990582002a3178",
+    "bytes": 846058
+  }
+}

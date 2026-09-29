@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "receiptId": "f2271e55-1df3-4ee1-a05d-0cf8ec4b7490",
+  "status": "current",
+  "command": "deliver",
+  "type": "sequence",
+  "input": "C:\\Users\\chaitanya.abhade\\Documents\\java\\clproject\\.archify\\sequence-svc-api-20260929-231226\\api-semantic-reads.json",
+  "output": "C:\\Users\\chaitanya.abhade\\Documents\\java\\clproject\\.archify\\sequence-svc-api-20260929-231226\\api-semantic-reads.html",
+  "specification": {
+    "sha256": "dc5c09832241e854428497b036e9281d6e200cb519200235c897b572b6179258",
+    "bytes": 3204
+  },
+  "artifact": {
+    "sha256": "91b594d13f516387aabc6625bb31e82438b2a126fe8e77b45f8e6f177490c8f3",
+    "bytes": 750402
+  }
+}

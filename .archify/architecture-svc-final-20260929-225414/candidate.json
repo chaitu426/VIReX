@@ -1,0 +1,1191 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "Semantic Video Codec — End-to-End Architecture",
+    "subtitle": "Use case: let AI agents answer questions about a video from a compressed, indexed semantic stream instead of re-running vision models on every query.",
+    "output": "semantic-video-codec.html",
+    "quality_profile": "showcase",
+    "legend": {
+      "mode": "auto",
+      "entries": {
+        "external": {
+          "label": "Input / output"
+        },
+        "backend": {
+          "label": "Go core"
+        },
+        "frontend": {
+          "label": "Python ML / LLM"
+        },
+        "cloud": {
+          "label": "FFmpeg pixel path"
+        },
+        "database": {
+          "label": "Stored artifact"
+        },
+        "messagebus": {
+          "label": "Job queue"
+        }
+      }
+    },
+    "views": [
+      {
+        "id": "ingest-pixels",
+        "label": "Ingest & pixels",
+        "focus": [
+          "video",
+          "ingest",
+          "sched",
+          "pixprep",
+          "keyframe",
+          "motion",
+          "pixenc",
+          "pixstream"
+        ],
+        "note": "Every frame goes to the H.264 pixel path."
+      },
+      {
+        "id": "extraction",
+        "label": "Semantic extraction",
+        "focus": [
+          "sampler",
+          "queue",
+          "metrics",
+          "retry",
+          "detector",
+          "ocr",
+          "scene",
+          "pose",
+          "embed",
+          "agg"
+        ],
+        "note": "Sampled frames run through Python models via gRPC."
+      },
+      {
+        "id": "understand",
+        "label": "Understand & compress",
+        "focus": [
+          "entity",
+          "action",
+          "event",
+          "relation",
+          "temporal",
+          "graph",
+          "svir",
+          "comp",
+          "indexer"
+        ],
+        "note": "Detections become tracked entities, events and compact blocks."
+      },
+      {
+        "id": "container",
+        "label": "Container & decode",
+        "focus": [
+          "container",
+          "storage",
+          "cache",
+          "cdn",
+          "reader",
+          "pdec",
+          "sdec",
+          "iread",
+          "recon",
+          "sync"
+        ],
+        "note": "One .svc file holds pixels, semantics and indexes."
+      },
+      {
+        "id": "serve",
+        "label": "Serve AI",
+        "focus": [
+          "unified",
+          "api",
+          "search",
+          "rag",
+          "llm",
+          "agent",
+          "qa",
+          "summ"
+        ],
+        "note": "Agents query semantics first and fetch pixels only when needed."
+      }
+    ]
+  },
+  "components": [
+    {
+      "id": "video",
+      "type": "external",
+      "label": "Input Video",
+      "sublabel": "MP4 · lecture · camera",
+      "pos": [
+        634,
+        40
+      ],
+      "size": [
+        140,
+        60
+      ]
+    },
+    {
+      "id": "ingest",
+      "type": "backend",
+      "label": "Go Ingestion Engine",
+      "sublabel": "ffprobe + FFmpeg pipe",
+      "pos": [
+        634,
+        150
+      ],
+      "size": [
+        140,
+        60
+      ]
+    },
+    {
+      "id": "sched",
+      "type": "backend",
+      "label": "Frame Scheduler",
+      "sublabel": "bounded buffer · PTS",
+      "pos": [
+        634,
+        260
+      ],
+      "size": [
+        140,
+        60
+      ]
+    },
+    {
+      "id": "pixprep",
+      "type": "cloud",
+      "label": "Preprocessor",
+      "sublabel": "resize · normalize",
+      "pos": [
+        40,
+        370
+      ],
+      "size": [
+        140,
+        60
+      ]
+    },
+    {
+      "id": "keyframe",
+      "type": "cloud",
+      "label": "Key Frame Detection",
+      "sublabel": "I-frame positions",
+      "pos": [
+        40,
+        480
+      ],
+      "size": [
+        140,
+        60
+      ]
+    },
+    {
+      "id": "motion",
+      "type": "cloud",
+      "label": "Motion Processing",
+      "sublabel": "inter-frame prediction",
+      "pos": [
+        40,
+        590
+      ],
+      "size": [
+        140,
+        60
+      ]
+    },
+    {
+      "id": "pixenc",
+      "type": "cloud",
+      "label": "H.264 / AV1 Encoder",
+      "sublabel": "FFmpeg libx264 · CRF",
+      "pos": [
+        40,
+        700
+      ],
+      "size": [
+        140,
+        60
+      ]
+    },
+    {
+      "id": "pixstream",
+      "type": "cloud",
+      "label": "Pixel Stream",
+      "sublabel": "compressed H.264",
+      "pos": [
+        40,
+        810
+      ],
+      "size": [
+        140,
+        60
+      ]
+    },
+    {
+      "id": "sampler",
+      "type": "backend",
+      "label": "Semantic Frame Sampler",
+      "sublabel": "interval · scene change",
+      "pos": [
+        634,
+        370
+      ],
+      "size": [
+        140,
+        60
+      ]
+    },
+    {
+      "id": "queue",
+      "type": "messagebus",
+      "label": "Job Scheduler & Queue",
+      "sublabel": "Go · job status",
+      "pos": [
+        634,
+        480
+      ],
+      "size": [
+        140,
+        60
+      ]
+    },
+    {
+      "id": "metrics",
+      "type": "backend",
+      "label": "Metrics & Logs",
+      "sublabel": "observability",
+      "pos": [
+        436,
+        480
+      ],
+      "size": [
+        140,
+        60
+      ]
+    },
+    {
+      "id": "retry",
+      "type": "backend",
+      "label": "Retry Handler",
+      "sublabel": "backoff · recovery",
+      "pos": [
+        832,
+        480
+      ],
+      "size": [
+        140,
+        60
+      ]
+    },
+    {
+      "id": "detector",
+      "type": "frontend",
+      "label": "Object Detector",
+      "sublabel": "YOLO · class + bbox",
+      "pos": [
+        238,
+        640
+      ],
+      "size": [
+        140,
+        60
+      ]
+    },
+    {
+      "id": "ocr",
+      "type": "frontend",
+      "label": "OCR Engine",
+      "sublabel": "PaddleOCR · text+bbox",
+      "pos": [
+        436,
+        640
+      ],
+      "size": [
+        140,
+        60
+      ]
+    },
+    {
+      "id": "scene",
+      "type": "frontend",
+      "label": "Scene / VLM",
+      "sublabel": "scene + context",
+      "pos": [
+        634,
+        640
+      ],
+      "size": [
+        140,
+        60
+      ]
+    },
+    {
+      "id": "pose",
+      "type": "frontend",
+      "label": "Pose / Action Model",
+      "sublabel": "gesture · action cues",
+      "pos": [
+        832,
+        640
+      ],
+      "size": [
+        140,
+        60
+      ]
+    },
+    {
+      "id": "embed",
+      "type": "frontend",
+      "label": "Embedding Model",
+      "sublabel": "CLIP · text vectors",
+      "pos": [
+        1030,
+        640
+      ],
+      "size": [
+        140,
+        60
+      ]
+    },
+    {
+      "id": "agg",
+      "type": "backend",
+      "label": "Semantic Aggregator",
+      "sublabel": "merge frame results",
+      "pos": [
+        634,
+        800
+      ],
+      "size": [
+        140,
+        60
+      ]
+    },
+    {
+      "id": "entity",
+      "type": "backend",
+      "label": "Entity Tracker",
+      "sublabel": "entity builder · IoU",
+      "pos": [
+        634,
+        920
+      ],
+      "size": [
+        140,
+        60
+      ]
+    },
+    {
+      "id": "action",
+      "type": "backend",
+      "label": "Action Recognition",
+      "sublabel": "rules + pose",
+      "pos": [
+        436,
+        1040
+      ],
+      "size": [
+        140,
+        60
+      ]
+    },
+    {
+      "id": "event",
+      "type": "backend",
+      "label": "Event Detection",
+      "sublabel": "entered · left · changed",
+      "pos": [
+        634,
+        1040
+      ],
+      "size": [
+        140,
+        60
+      ]
+    },
+    {
+      "id": "relation",
+      "type": "backend",
+      "label": "Relation Detection",
+      "sublabel": "near · holds · points",
+      "pos": [
+        832,
+        1040
+      ],
+      "size": [
+        140,
+        60
+      ]
+    },
+    {
+      "id": "temporal",
+      "type": "backend",
+      "label": "Temporal Engine",
+      "sublabel": "lifetimes · deltas",
+      "pos": [
+        634,
+        1160
+      ],
+      "size": [
+        140,
+        60
+      ]
+    },
+    {
+      "id": "graph",
+      "type": "backend",
+      "label": "Semantic Graph Builder",
+      "sublabel": "entities + relations",
+      "pos": [
+        634,
+        1280
+      ],
+      "size": [
+        140,
+        60
+      ]
+    },
+    {
+      "id": "svir",
+      "type": "backend",
+      "label": "SVIR Block Generator",
+      "sublabel": "8 semantic block types",
+      "pos": [
+        634,
+        1400
+      ],
+      "size": [
+        140,
+        60
+      ]
+    },
+    {
+      "id": "comp",
+      "type": "backend",
+      "label": "Semantic Compressor",
+      "sublabel": "delta · dictionary",
+      "pos": [
+        634,
+        1520
+      ],
+      "size": [
+        140,
+        60
+      ]
+    },
+    {
+      "id": "indexer",
+      "type": "backend",
+      "label": "AI Index Builder",
+      "sublabel": "time · entity · vector",
+      "pos": [
+        832,
+        1520
+      ],
+      "size": [
+        140,
+        60
+      ]
+    },
+    {
+      "id": "container",
+      "type": "database",
+      "label": "SVC Container Writer",
+      "sublabel": "movie.svc",
+      "pos": [
+        634,
+        1680
+      ],
+      "size": [
+        140,
+        60
+      ]
+    },
+    {
+      "id": "storage",
+      "type": "database",
+      "label": "Storage",
+      "sublabel": "Local FS · MinIO / S3",
+      "pos": [
+        634,
+        1790
+      ],
+      "size": [
+        140,
+        60
+      ]
+    },
+    {
+      "id": "cache",
+      "type": "database",
+      "label": "Semantic Cache",
+      "sublabel": "hot semantic blocks",
+      "pos": [
+        436,
+        1790
+      ],
+      "size": [
+        140,
+        60
+      ]
+    },
+    {
+      "id": "cdn",
+      "type": "cloud",
+      "label": "CDN / Streaming",
+      "sublabel": "delivery",
+      "pos": [
+        832,
+        1790
+      ],
+      "size": [
+        140,
+        60
+      ]
+    },
+    {
+      "id": "reader",
+      "type": "backend",
+      "label": "SVC Reader",
+      "sublabel": "section table · CRC",
+      "pos": [
+        634,
+        1940
+      ],
+      "size": [
+        140,
+        60
+      ]
+    },
+    {
+      "id": "pdec",
+      "type": "cloud",
+      "label": "Pixel Decoder",
+      "sublabel": "FFmpeg seek + decode",
+      "pos": [
+        436,
+        2050
+      ],
+      "size": [
+        140,
+        60
+      ]
+    },
+    {
+      "id": "sdec",
+      "type": "backend",
+      "label": "Semantic Decoder",
+      "sublabel": "varint → SVIR",
+      "pos": [
+        634,
+        2050
+      ],
+      "size": [
+        140,
+        60
+      ]
+    },
+    {
+      "id": "iread",
+      "type": "backend",
+      "label": "Index Reader",
+      "sublabel": "random access",
+      "pos": [
+        832,
+        2050
+      ],
+      "size": [
+        140,
+        60
+      ]
+    },
+    {
+      "id": "recon",
+      "type": "backend",
+      "label": "Graph Reconstruction",
+      "sublabel": "entities + relations",
+      "pos": [
+        634,
+        2160
+      ],
+      "size": [
+        140,
+        60
+      ]
+    },
+    {
+      "id": "sync",
+      "type": "backend",
+      "label": "Pixel / Semantic Sync",
+      "sublabel": "timestamp alignment",
+      "pos": [
+        634,
+        2270
+      ],
+      "size": [
+        140,
+        60
+      ]
+    },
+    {
+      "id": "unified",
+      "type": "database",
+      "label": "Unified Video Object",
+      "sublabel": "frames · semantics",
+      "pos": [
+        634,
+        2440
+      ],
+      "size": [
+        140,
+        60
+      ]
+    },
+    {
+      "id": "api",
+      "type": "backend",
+      "label": "Semantic Video API",
+      "sublabel": "Go REST / gRPC",
+      "pos": [
+        634,
+        2560
+      ],
+      "size": [
+        140,
+        60
+      ]
+    },
+    {
+      "id": "search",
+      "type": "backend",
+      "label": "Semantic Search",
+      "sublabel": "keyword + vector",
+      "pos": [
+        436,
+        2720
+      ],
+      "size": [
+        140,
+        60
+      ]
+    },
+    {
+      "id": "rag",
+      "type": "frontend",
+      "label": "Semantic Video RAG",
+      "sublabel": "retrieve → context",
+      "pos": [
+        634,
+        2720
+      ],
+      "size": [
+        140,
+        60
+      ]
+    },
+    {
+      "id": "llm",
+      "type": "frontend",
+      "label": "LLM / VLM",
+      "sublabel": "Claude · OpenAI · Ollama",
+      "pos": [
+        832,
+        2720
+      ],
+      "size": [
+        140,
+        60
+      ]
+    },
+    {
+      "id": "agent",
+      "type": "frontend",
+      "label": "AI Agent",
+      "sublabel": "tools · pixel check",
+      "pos": [
+        634,
+        2860
+      ],
+      "size": [
+        140,
+        60
+      ]
+    },
+    {
+      "id": "qa",
+      "type": "external",
+      "label": "Video QA",
+      "sublabel": "answers + timestamps",
+      "pos": [
+        436,
+        3010
+      ],
+      "size": [
+        140,
+        60
+      ]
+    },
+    {
+      "id": "summ",
+      "type": "external",
+      "label": "Summarization",
+      "sublabel": "timeline summaries",
+      "pos": [
+        832,
+        3010
+      ],
+      "size": [
+        140,
+        60
+      ]
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "Pixel pipeline · FFmpeg",
+      "wraps": [
+        "pixprep",
+        "keyframe",
+        "motion",
+        "pixenc",
+        "pixstream"
+      ]
+    },
+    {
+      "kind": "region",
+      "label": "Python ML services · gRPC",
+      "wraps": [
+        "detector",
+        "ocr",
+        "scene",
+        "pose",
+        "embed"
+      ]
+    },
+    {
+      "kind": "region",
+      "label": "Semantic build · Go",
+      "wraps": [
+        "agg",
+        "entity",
+        "action",
+        "event",
+        "relation",
+        "temporal",
+        "graph",
+        "svir",
+        "comp",
+        "indexer"
+      ]
+    },
+    {
+      "kind": "region",
+      "label": "SVC decoder · Go",
+      "wraps": [
+        "reader",
+        "pdec",
+        "sdec",
+        "iread",
+        "recon",
+        "sync"
+      ]
+    },
+    {
+      "kind": "region",
+      "label": "AI consumption",
+      "wraps": [
+        "search",
+        "rag",
+        "llm",
+        "agent"
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "id": "video-to-ingest",
+      "from": "video",
+      "to": "ingest",
+      "label": "file"
+    },
+    {
+      "id": "ingest-to-sched",
+      "from": "ingest",
+      "to": "sched",
+      "label": "frames"
+    },
+    {
+      "id": "sched-to-pixprep",
+      "from": "sched",
+      "to": "pixprep",
+      "label": "all frames",
+      "fromSide": "left",
+      "toSide": "top",
+      "variant": "emphasis"
+    },
+    {
+      "id": "sched-to-sampler",
+      "from": "sched",
+      "to": "sampler",
+      "label": "sampled"
+    },
+    {
+      "id": "pixprep-to-keyframe",
+      "from": "pixprep",
+      "to": "keyframe"
+    },
+    {
+      "id": "keyframe-to-motion",
+      "from": "keyframe",
+      "to": "motion"
+    },
+    {
+      "id": "motion-to-pixenc",
+      "from": "motion",
+      "to": "pixenc"
+    },
+    {
+      "id": "pixenc-to-pixstream",
+      "from": "pixenc",
+      "to": "pixstream",
+      "label": "H.264"
+    },
+    {
+      "id": "sampler-to-queue",
+      "from": "sampler",
+      "to": "queue",
+      "label": "jobs"
+    },
+    {
+      "id": "queue-to-metrics",
+      "from": "queue",
+      "to": "metrics",
+      "label": "stats",
+      "fromSide": "left",
+      "toSide": "right",
+      "variant": "dashed"
+    },
+    {
+      "id": "queue-to-retry",
+      "from": "queue",
+      "to": "retry",
+      "label": "fails",
+      "fromSide": "right",
+      "toSide": "left",
+      "variant": "dashed"
+    },
+    {
+      "id": "queue-to-detector",
+      "from": "queue",
+      "to": "detector",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "queue-to-ocr",
+      "from": "queue",
+      "to": "ocr",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "queue-to-scene",
+      "from": "queue",
+      "to": "scene",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "queue-to-pose",
+      "from": "queue",
+      "to": "pose",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "queue-to-embed",
+      "from": "queue",
+      "to": "embed",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "detector-to-agg",
+      "from": "detector",
+      "to": "agg",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "ocr-to-agg",
+      "from": "ocr",
+      "to": "agg",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "scene-to-agg",
+      "from": "scene",
+      "to": "agg",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "pose-to-agg",
+      "from": "pose",
+      "to": "agg",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "embed-to-agg",
+      "from": "embed",
+      "to": "agg",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "agg-to-entity",
+      "from": "agg",
+      "to": "entity",
+      "label": "detections"
+    },
+    {
+      "id": "entity-to-action",
+      "from": "entity",
+      "to": "action"
+    },
+    {
+      "id": "entity-to-event",
+      "from": "entity",
+      "to": "event"
+    },
+    {
+      "id": "entity-to-relation",
+      "from": "entity",
+      "to": "relation"
+    },
+    {
+      "id": "action-to-temporal",
+      "from": "action",
+      "to": "temporal"
+    },
+    {
+      "id": "event-to-temporal",
+      "from": "event",
+      "to": "temporal"
+    },
+    {
+      "id": "relation-to-temporal",
+      "from": "relation",
+      "to": "temporal"
+    },
+    {
+      "id": "temporal-to-graph",
+      "from": "temporal",
+      "to": "graph",
+      "label": "timeline"
+    },
+    {
+      "id": "graph-to-svir",
+      "from": "graph",
+      "to": "svir"
+    },
+    {
+      "id": "svir-to-comp",
+      "from": "svir",
+      "to": "comp",
+      "label": "blocks"
+    },
+    {
+      "id": "svir-to-indexer",
+      "from": "svir",
+      "to": "indexer",
+      "label": "blocks",
+      "fromSide": "right",
+      "toSide": "top"
+    },
+    {
+      "id": "comp-to-container",
+      "from": "comp",
+      "to": "container",
+      "label": "semantic stream"
+    },
+    {
+      "id": "indexer-to-container",
+      "from": "indexer",
+      "to": "container",
+      "label": "indexes"
+    },
+    {
+      "id": "pixstream-to-container",
+      "from": "pixstream",
+      "to": "container",
+      "label": "pixel stream",
+      "fromSide": "bottom",
+      "toSide": "left",
+      "variant": "emphasis"
+    },
+    {
+      "id": "container-to-storage",
+      "from": "container",
+      "to": "storage",
+      "label": "write"
+    },
+    {
+      "id": "storage-to-cache",
+      "from": "storage",
+      "to": "cache",
+      "label": "warm",
+      "fromSide": "left",
+      "toSide": "right",
+      "variant": "dashed"
+    },
+    {
+      "id": "storage-to-cdn",
+      "from": "storage",
+      "to": "cdn",
+      "label": "serve",
+      "fromSide": "right",
+      "toSide": "left",
+      "variant": "dashed"
+    },
+    {
+      "id": "storage-to-reader",
+      "from": "storage",
+      "to": "reader",
+      "label": "read"
+    },
+    {
+      "id": "reader-to-pdec",
+      "from": "reader",
+      "to": "pdec",
+      "label": "pixel"
+    },
+    {
+      "id": "reader-to-sdec",
+      "from": "reader",
+      "to": "sdec",
+      "label": "semantic"
+    },
+    {
+      "id": "reader-to-iread",
+      "from": "reader",
+      "to": "iread",
+      "label": "index"
+    },
+    {
+      "id": "sdec-to-recon",
+      "from": "sdec",
+      "to": "recon"
+    },
+    {
+      "id": "recon-to-sync",
+      "from": "recon",
+      "to": "sync"
+    },
+    {
+      "id": "pdec-to-sync",
+      "from": "pdec",
+      "to": "sync"
+    },
+    {
+      "id": "iread-to-sync",
+      "from": "iread",
+      "to": "sync"
+    },
+    {
+      "id": "sync-to-unified",
+      "from": "sync",
+      "to": "unified"
+    },
+    {
+      "id": "unified-to-api",
+      "from": "unified",
+      "to": "api"
+    },
+    {
+      "id": "api-to-search",
+      "from": "api",
+      "to": "search",
+      "label": "search"
+    },
+    {
+      "id": "api-to-rag",
+      "from": "api",
+      "to": "rag",
+      "label": "query"
+    },
+    {
+      "id": "api-to-llm",
+      "from": "api",
+      "to": "llm",
+      "label": "context"
+    },
+    {
+      "id": "search-to-agent",
+      "from": "search",
+      "to": "agent"
+    },
+    {
+      "id": "rag-to-agent",
+      "from": "rag",
+      "to": "agent"
+    },
+    {
+      "id": "llm-to-agent",
+      "from": "llm",
+      "to": "agent"
+    },
+    {
+      "id": "agent-to-qa",
+      "from": "agent",
+      "to": "qa"
+    },
+    {
+      "id": "agent-to-summ",
+      "from": "agent",
+      "to": "summ"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "Use case",
+      "items": [
+        "Ask: \"What did the teacher write between 5 and 10 minutes?\"",
+        "Search the index, read only those blocks, answer with timestamps",
+        "Pixels are fetched only when visual proof is needed"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "SVC container (movie.svc)",
+      "items": [
+        "Header · Pixel stream · Semantic stream",
+        "Temporal index · AI index · Metadata"
+      ]
+    },
+    {
+      "dot": "violet",
+      "title": "Semantic block types",
+      "items": [
+        "Entity · Object · Text · Action",
+        "Event · Relation · Scene · Temporal"
+      ]
+    },
+    {
+      "dot": "amber",
+      "title": "Tech stack",
+      "items": [
+        "Go core · Python ML · FFmpeg H.264",
+        "gRPC + Protobuf · MinIO / S3 · REST API"
+      ]
+    }
+  ]
+}

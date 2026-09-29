@@ -1,0 +1,170 @@
+# Tech Stack — Semantic Video Codec
+
+Choices follow your architecture document: **Go core, Python ML services, FFmpeg for pixels**. Where the document leaves options open, this file picks one and says why.
+
+---
+
+## 1. Summary
+
+| Layer | Choice | Phase |
+|---|---|---|
+| Core runtime | **Go 1.22+** | 1–4 |
+| ML services | **Python 3.10+** | 2, 4 |
+| Video processing | **FFmpeg + ffprobe** | 1 |
+| Pixel codec | **H.264 (libx264)**, AV1 optional | 1 |
+| Go ⇄ Python | **gRPC** (Protobuf) | 2 |
+| Semantic serialisation | **Protobuf first, custom compact binary later** | 1, 3 |
+| Object detection | **YOLO (Ultralytics)** | 2 |
+| OCR | **PaddleOCR** or EasyOCR | 2 |
+| Tracking | **IoU + Hungarian / SORT** | 2 |
+| Scene/VLM (stretch) | **LLaVA / Qwen-VL** or hosted API | 2 |
+| Embeddings (optional) | **CLIP / sentence-transformers** | 2, 4 |
+| Storage | **Local filesystem**, MinIO optional | 1–4 |
+| Indexes | **Custom in Go** (temporal, entity, inverted text), brute-force vector | 3 |
+| API | **Go net/http** (REST), gRPC optional | 3 |
+| Job queue | **In-process Go channels**, Redis/NATS optional | 4 |
+| LLM | **Claude API** (or OpenAI / Ollama) behind an interface | 4 |
+| Testing | `go test`, `pytest` | all |
+| Packaging | **Docker** for the ML service | 2+ |
+| Version control | **Git + GitHub** | all |
+
+---
+
+## 2. Core runtime — Go
+
+**Used for:** ingestion, pipeline orchestration, temporal engine, SVIR, container reader/writer, decoder, indexing, API, worker management.
+
+**Why:** goroutines and channels fit a frame pipeline; single binary deployment; strong standard library for networking and binary I/O (`encoding/binary`, `bufio`, `net/http`).
+
+**Libraries:**
+| Purpose | Library |
+|---|---|
+| Protobuf | `google.golang.org/protobuf`, `protoc-gen-go` |
+| gRPC | `google.golang.org/grpc` |
+| CLI | `spf13/cobra` (or standard `flag`) |
+| Logging | `log/slog` |
+| Metrics | `prometheus/client_golang` (optional) |
+| Compression | `klauspost/compress/zstd` |
+| Testing | `testing`, `stretchr/testify` |
+| Router | standard `http.ServeMux` (Go 1.22) or `chi` |
+
+---
+
+## 3. ML layer — Python
+
+**Used for:** detection, OCR, VLM, embeddings — isolated behind gRPC so models can be swapped without touching Go.
+
+| Purpose | Choice | Notes |
+|---|---|---|
+| Object detection | Ultralytics YOLOv8/v11 (`yolov8n` for CPU) | Pretrained COCO, no training needed |
+| OCR | PaddleOCR (better accuracy) or EasyOCR (easier install) | Pick one after a quick benchmark |
+| Pose (stretch) | YOLO-pose or MediaPipe | For writing/pointing/raising a hand |
+| Scene / VLM (stretch) | LLaVA, Qwen-VL, or a hosted vision API | Only on scene changes to control cost |
+| Embeddings | CLIP (image), `sentence-transformers` (text) | Only if vector search is built |
+| Serving | FastAPI first, then gRPC (`grpcio`) | |
+| Runtime | PyTorch, ONNX Runtime (optional speed-up) | |
+| Env | `venv` or Docker | Avoids Windows dependency problems |
+
+**Hardware note:** a laptop CPU works with `yolov8n` at 1–2 sampled frames per second. A GPU (or free Colab/Kaggle for batch runs) makes the VLM and larger models practical.
+
+---
+
+## 4. Video processing
+
+- **FFmpeg / ffprobe** called from Go through `os/exec` with piped output. This avoids CGO and Windows build pain.
+- **H.264 (libx264)** for the pixel stream: universal playback, easy to verify. Settings: `-crf 23 -preset medium`. Record key-frame positions for seeking.
+- **AV1 (libsvtav1 / libaom)** is optional and only for a comparison experiment. Encoding is slow.
+- **Quality checks:** SSIM and PSNR through FFmpeg filters.
+
+---
+
+## 5. Serialisation and container
+
+| Stage | Format | Why |
+|---|---|---|
+| Phase 1–2 | **Protobuf** + JSON export | Stable schema, easy debugging, generated code in Go and Python |
+| Phase 3 | **Custom compact binary** (varint, delta, dictionary IDs) | Real semantic compression, the core of "codec" |
+| Optional | zstd over the semantic section | Report results with and without |
+
+**Container:** custom `.svc` — magic bytes, header, section table `(type, offset, length)`, sections (pixel, semantic, temporal index, AI index, metadata), CRC32 per section.
+
+Alternatives considered (MessagePack, CBOR) are fine as a stepping stone but add no value over Protobuf plus a custom compact encoder.
+
+---
+
+## 6. Indexing
+
+| Index | Structure | Phase |
+|---|---|---|
+| Temporal | Sorted `(timestamp → offset)` with sparse checkpoints | 3 |
+| Entity | `entity_id → lifetime + blocks` | 3 |
+| Event / Text | Inverted index (token → timestamps) | 3 |
+| Vector (optional) | Brute-force cosine, HNSW only if time allows | 3–4 |
+
+Keep them custom and simple. Do not add Elasticsearch or a vector database; they hide the work you want to show.
+
+---
+
+## 7. API and AI
+
+- **REST** in Go for the Semantic Video API (see Phase 3 endpoint table), with an **OpenAPI** spec.
+- **LLM client interface** in Go: `Complete(ctx, prompt, images) → answer`. Implementations: Claude API, OpenAI, Ollama (local).
+- **RAG:** retrieval from the semantic indexes, context formatted as a compact timeline.
+- **Agent tools:** `getEvents`, `getText`, `getEntity`, `searchSemantic`, `getFrame`.
+- **Demo UI:** a minimal HTML/JS page served by the Go API, or a CLI. Do not spend weeks on the frontend.
+
+---
+
+## 8. Background processing
+
+- Phase 4 starts with **in-process** goroutine workers and channels. That is enough to demonstrate the architecture.
+- Upgrade path if there is time: **Redis** (Asynq) or **NATS** for a real queue.
+- Features: retries with backoff, job states, progress, partial resume, structured logs, Prometheus-style metrics.
+
+---
+
+## 9. Dev tooling
+
+| Tool | Use |
+|---|---|
+| Git and GitHub | Version control, one branch per phase, tags at each phase end |
+| VS Code or GoLand | Go development |
+| Protobuf compiler `protoc`, `buf` (optional) | Schema generation |
+| Docker Desktop | Run the Python ML service |
+| `golangci-lint`, `go vet`, `-race` | Code quality |
+| Postman / curl | API testing |
+| Python: `black`, `pytest` | ML service quality |
+| Jupyter / matplotlib | Evaluation charts for the report |
+| Draw.io / Mermaid | Diagrams (already in your architecture doc) |
+
+---
+
+## 10. Datasets and test material
+
+- Your own short **lecture** and **screen-recording** clips (best for OCR and events).
+- Public: **MOT17** or **UA-DETRAC** (tracking), **Charades** or **AVA** (actions), **YouTube lecture** clips (check licences), **COCO** class list for reference.
+- Start with 5–8 clips of 1–5 minutes; add one 20–45 minute lecture for the compression and random-access experiments.
+
+---
+
+## 11. Installation checklist
+
+```text
+[ ] Go 1.22+
+[ ] FFmpeg (with libx264) on PATH, plus ffprobe
+[ ] protoc + protoc-gen-go + protoc-gen-go-grpc
+[ ] Python 3.10+ with venv
+[ ] pip: ultralytics, paddleocr (or easyocr), fastapi, uvicorn, grpcio, grpcio-tools
+[ ] Docker Desktop (optional but recommended)
+[ ] Git
+[ ] LLM access: an API key, or Ollama for local models
+```
+
+---
+
+## 12. Decisions to confirm with your guide
+
+1. Is a **Go + Python** split acceptable, or should everything be Python for simplicity?
+2. **CPU only** or GPU available? This decides the model sizes and sampling rate.
+3. Which **LLM** provider is permitted and budgeted?
+4. Expected **evaluation depth** (number of videos, questions, need for a paper).

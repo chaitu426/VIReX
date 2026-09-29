@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "receiptId": "8838cce2-604b-4a9f-af45-5c94a0dd61d4",
+  "status": "current",
+  "command": "deliver",
+  "type": "sequence",
+  "input": "C:\\Users\\chaitanya.abhade\\Documents\\java\\clproject\\.archify\\sequence-svc-api-20260929-231226\\candidate.json",
+  "output": "C:\\Users\\chaitanya.abhade\\Documents\\java\\clproject\\.archify\\sequence-svc-api-20260929-231226\\semantic-video-api-sequence.html",
+  "specification": {
+    "sha256": "3b4af4074ce2efe3a3d3c4ce0d3dc120603416527be6920e5f347457704be4a6",
+    "bytes": 8808
+  },
+  "artifact": {
+    "sha256": "4ae85578351d3d3a2d5c2de2df0455e40c306eeb3863772a913a58578ddc49ef",
+    "bytes": 772576
+  }
+}

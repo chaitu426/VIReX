@@ -1,0 +1,155 @@
+{
+  "schema_version": 1,
+  "diagram_type": "sequence",
+  "meta": {
+    "title": "Semantic Reads — Request to Response",
+    "subtitle": "getObjects, getText, getEvents, getTimeline and getEntity read semantic blocks only and never touch pixels.",
+    "output": "api-semantic-reads.html",
+    "viewBox": [
+      1000,
+      610
+    ],
+    "column_fit": "spread",
+    "quality_profile": "showcase",
+    "legend": {
+      "mode": "auto",
+      "entries": {
+        "emphasis": {
+          "label": "API request"
+        },
+        "return": {
+          "label": "Response"
+        },
+        "dashed": {
+          "label": "Only when needed"
+        },
+        "default": {
+          "label": "Internal call"
+        }
+      }
+    }
+  },
+  "participants": [
+    {
+      "id": "caller",
+      "type": "external",
+      "label": "Caller",
+      "sublabel": "AI agent · app"
+    },
+    {
+      "id": "api",
+      "type": "backend",
+      "label": "Semantic Video API",
+      "sublabel": "Go REST / gRPC"
+    },
+    {
+      "id": "index",
+      "type": "database",
+      "label": "Index Reader",
+      "sublabel": "time · entity"
+    },
+    {
+      "id": "sdec",
+      "type": "backend",
+      "label": "Semantic Decoder",
+      "sublabel": "blocks → SVIR"
+    }
+  ],
+  "segments": [
+    {
+      "from": 170,
+      "to": 362,
+      "label": "GET /objects · /text · /events · /timeline · /entities/{id}"
+    }
+  ],
+  "messages": [
+    {
+      "id": "m1",
+      "from": "caller",
+      "to": "api",
+      "y": 194,
+      "label": "GET semantic read",
+      "variant": "emphasis",
+      "note": "t · range · entity id"
+    },
+    {
+      "id": "m2",
+      "from": "api",
+      "to": "index",
+      "y": 224,
+      "label": "time range or entity",
+      "variant": "default"
+    },
+    {
+      "id": "m3",
+      "from": "index",
+      "to": "api",
+      "y": 254,
+      "label": "offsets",
+      "variant": "return"
+    },
+    {
+      "id": "m4",
+      "from": "api",
+      "to": "sdec",
+      "y": 284,
+      "label": "decode those blocks",
+      "variant": "default"
+    },
+    {
+      "id": "m5",
+      "from": "sdec",
+      "to": "api",
+      "y": 314,
+      "label": "objects · OCR · events",
+      "variant": "return"
+    },
+    {
+      "id": "m6",
+      "from": "api",
+      "to": "caller",
+      "y": 344,
+      "label": "JSON, no pixels",
+      "variant": "return"
+    }
+  ],
+  "activations": [
+    {
+      "participant": "index",
+      "from": 218,
+      "to": 260,
+      "type": "database"
+    },
+    {
+      "participant": "sdec",
+      "from": 278,
+      "to": 320,
+      "type": "backend"
+    },
+    {
+      "participant": "api",
+      "from": 188,
+      "to": 352,
+      "type": "backend"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "Index used per call",
+      "items": [
+        "getObjects(t), getText(t): temporal index",
+        "getEvents(start, end), getTimeline(): temporal range scan",
+        "getEntity(id): entity index (lifetime + blocks)"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "Why it is fast",
+      "items": [
+        "Index gives byte offsets",
+        "Only small blocks are decoded, not the full stream"
+      ]
+    }
+  ]
+}
