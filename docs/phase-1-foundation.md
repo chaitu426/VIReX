@@ -1,8 +1,8 @@
 # Phase 1 — Foundation: Ingestion, Pixel Pipeline, SVIR Schema, Container Skeleton
 
-**Project:** Semantic Video Codec (SVC)
+**Project:** VIReX
 **Suggested duration:** 4–5 weeks
-**Phase goal:** Have a working Go skeleton that takes a video in, produces a pixel stream, defines the semantic data model, and writes and reads a minimal `.svc` file. No AI yet.
+**Phase goal:** Have a working Go skeleton that takes a video in, produces a pixel stream, defines the semantic data model, and writes and reads a minimal `.virex` file. No AI yet.
 
 ---
 
@@ -28,8 +28,8 @@ If these change late, everything built on them breaks. Get them right first, and
 | 4 | Semantic frame sampler | Configurable: every N frames, every T seconds, or on scene change |
 | 5 | Pixel pipeline | FFmpeg encodes to H.264 and the pixel stream is written as a separate file |
 | 6 | SVIR schema v0.1 in Protobuf | `.proto` covers Entity, Object, Text, Action, Event, Relation, Scene and Temporal blocks |
-| 7 | SVC container v0.1 | Header, pixel stream and an (empty) semantic stream are written and read back |
-| 8 | CLI `svc-encode` and `svc-decode` (pixel only) | `svc-decode` rebuilds a playable mp4 from `.svc` |
+| 7 | VIReX container v0.1 | Header, pixel stream and an (empty) semantic stream are written and read back |
+| 8 | CLI `virex-encode` and `virex-decode` (pixel only) | `virex-decode` rebuilds a playable mp4 from `.virex` |
 | 9 | Test video set | 5–8 short clips (lecture, screen recording, street, indoor) |
 
 ---
@@ -58,6 +58,8 @@ If these change late, everything built on them breaks. Get them right first, and
   - `EventBlock { type, start, end, entity_ids, region, confidence }`
   - `RelationBlock { subject_id, relation, object_id, start, end }`
   - `SceneBlock { label, context, start, end }`
+- [ ] **[C4]** Add a shared `PixelRef { t_start, t_end, frame_id, bbox }` message and give every block above a `pixel_ref` field, so any semantic fact can be traced back to its pixels.
+- [ ] **[C3]** Add a `layer` field (enum `L0_ENTITY`, `L1_EVENT`, `L2_TEXT`, `L3_EMBEDDING`) to every block. Layers: L0 = entities and objects, L1 = events, actions, relations, scenes, L2 = text, L3 = embeddings and captions.
 - [ ] Add `schema_version` and generate Go code (`protoc-gen-go`).
 - [ ] Write a JSON export helper for SVIR so you can inspect and debug it.
 - [ ] Write hand-made fake SVIR data for one clip so you can test the container before any ML exists.
@@ -66,25 +68,39 @@ If these change late, everything built on them breaks. Get them right first, and
 - [ ] Define the binary layout: `magic bytes | header | section table | pixel section | semantic section | index section | metadata`.
 - [ ] Header fields: version, resolution, fps, duration, pixel codec, semantic schema version.
 - [ ] The section table holds `(type, offset, length)` for each section, so any section can be read without scanning the file.
+- [ ] **[C3]** Reserve a `layer` id in the section table entry, so the semantic section can later be split into one stream per layer without changing the container layout.
 - [ ] Write `codec/container/writer.go` and `reader.go`.
 - [ ] Add a CRC32 per section.
-- [ ] `svc-encode input.mp4 -o out.svc` and `svc-decode out.svc -o out.mp4`.
+- [ ] `virex-encode input.mp4 -o out.virex` and `virex-decode out.virex -o out.mp4`.
 - [ ] Round-trip test: the decoded video plays and matches the source (check with SSIM or PSNR through FFmpeg).
 
 ### Week 5 (buffer)
 - [ ] Fix bugs, write docs, tidy the code.
-- [ ] Record baseline numbers: encode time, size of source vs pixel stream vs `.svc`.
+- [ ] Record baseline numbers: encode time, size of source vs pixel stream vs `.virex`.
+- [ ] **[C1]** Add a small cost logger (`cost/`) that records, per run and per stage: wall time, CPU time, bytes in and out, and (from Phase 2) model calls and tokens. Write it as JSON lines. Every later phase reports through it, so the amortization model has real data.
 - [ ] Write the Phase 1 summary for your logbook.
 
 ---
 
 ## 4. Exit criteria (all must be true)
 
-- `svc-encode` and `svc-decode` work on all test clips.
+- `virex-encode` and `virex-decode` work on all test clips.
 - The container reader can jump to the semantic section without reading the pixel section.
 - SVIR `.proto` is reviewed, versioned and committed. Later changes must be additive.
 - Sampler emits frames with correct timestamps.
 - The decoded video is visually identical to the H.264 encode.
+- Schema v0.1 has `pixel_ref` (C4) and `layer` (C3) on every block, and the cost logger (C1) writes a per-stage record for every encode.
+
+## 4a. Paper contributions in this phase
+
+| ID | What to do here |
+|---|---|
+| C1 | Cost logger with per-stage time, bytes and (later) tokens |
+| C3 | `layer` enum in the schema, `layer` id in the section table |
+| C4 | `PixelRef` message on every block |
+| C2 | Nothing yet |
+
+These are cheap now and painful to retrofit later, which is why they belong in the schema freeze.
 
 ## 5. Risks and mitigations
 

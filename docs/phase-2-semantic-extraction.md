@@ -1,6 +1,6 @@
 # Phase 2 — Semantic Extraction and Temporal Engine
 
-**Project:** Semantic Video Codec (SVC)
+**Project:** VIReX
 **Suggested duration:** 6–7 weeks (the heaviest phase)
 **Phase goal:** Turn sampled frames into a structured, time-aware SVIR: objects, text, persistent entities, actions, events and relations. This is the "semantic encoder" half of the project.
 
@@ -50,6 +50,8 @@ Follow the MVP from the project document. **Do not** try all modalities.
 - [ ] Define `ml.proto` (`DetectObjects`, `RunOCR`). Generate the Go and Python stubs.
 - [ ] Go client with timeout, retry, and a worker pool for parallel frames.
 - [ ] Map ML output to the SVIR `ObjectBlock` and `TextBlock`.
+- [ ] **[C4]** Fill `pixel_ref` on every block: the source frame id, the time range, and the bbox. When tracking merges blocks in Week 3, keep the list of source refs (or the first, last and a representative frame).
+- [ ] **[C1]** Send every ML call through the cost logger: latency, model name and version, and for a VLM the tokens used.
 - [ ] Run end to end on one clip and dump JSON.
 
 ### Week 3 — Tracking and entities
@@ -74,12 +76,14 @@ Follow the MVP from the project document. **Do not** try all modalities.
 - [ ] Delta encoding at the semantic level: store only attribute or bbox changes above a threshold.
 - [ ] Timeline generation: an ordered list of events per entity.
 - [ ] Build the in-memory semantic graph (entity nodes, event and relation edges).
+- [ ] **[C3]** Assign each emitted block to its layer: objects and entities to L0, events, actions, relations and scenes to L1, OCR text to L2, embeddings and VLM captions to L3. Validate that every block has a layer.
 - [ ] Emit final SVIR and validate it against the `.proto`.
 
 ### Week 6 — Pipeline integration and labels
-- [ ] Wire into `svc-encode`: the pixel pipeline and semantic pipeline run concurrently and both write into the container.
+- [ ] Wire into `virex-encode`: the pixel pipeline and semantic pipeline run concurrently and both write into the container.
 - [ ] Hand-label ground truth for 2–3 clips (objects at sampled frames, on-screen text, event times). A simple CSV or JSON is enough.
 - [ ] Run a first accuracy check (detection precision and recall, OCR character accuracy, event time error).
+- [ ] **[C2]** Design the benchmark question format now, while labelling: for each clip write **8–15 questions** (not 1–2), each with `question`, `answer`, `evidence_time_ranges`, `type` (object, text, event, temporal-order, counting, summary, needs-pixels) and `required_layers` (which of L0–L3 should suffice). Store them next to the ground truth, one file per clip.
 
 ### Week 7 (buffer / stretch)
 - [ ] VLM scene descriptions (LLaVA, Qwen-VL or a hosted API) per scene change.
@@ -90,11 +94,22 @@ Follow the MVP from the project document. **Do not** try all modalities.
 
 ## 4. Exit criteria
 
-- `svc-encode clip.mp4` produces an `.svc` with real SVIR in the semantic section.
+- `virex-encode clip.mp4` produces an `.virex` with real SVIR in the semantic section.
 - A person in a clip becomes **one entity with a lifetime**, not one detection per frame.
 - SVIR JSON for the lecture clip contains recognisable text, objects and at least three event types.
 - ML service can be swapped (change the model) without touching Go code.
 - Ground truth exists for at least 2 clips.
+- Every block has a `layer` (C3) and a `pixel_ref` (C4), and every ML call is in the cost log (C1).
+- At least 2 clips have 8+ benchmark questions each with evidence ranges and question types (C2).
+
+## 4a. Paper contributions in this phase
+
+| ID | What to do here |
+|---|---|
+| C1 | Log time and tokens for every ML call |
+| C2 | Write multi-question ground truth with types and evidence ranges |
+| C3 | Tag each block with its layer |
+| C4 | Populate `pixel_ref` and keep it through tracking and merging |
 
 ## 5. Risks and mitigations
 

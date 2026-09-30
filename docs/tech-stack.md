@@ -1,4 +1,4 @@
-# Tech Stack — Semantic Video Codec
+# Tech Stack — VIReX
 
 Choices follow your architecture document: **Go core, Python ML services, FFmpeg for pixels**. Where the document leaves options open, this file picks one and says why.
 
@@ -86,7 +86,7 @@ Choices follow your architecture document: **Go core, Python ML services, FFmpeg
 | Phase 3 | **Custom compact binary** (varint, delta, dictionary IDs) | Real semantic compression, the core of "codec" |
 | Optional | zstd over the semantic section | Report results with and without |
 
-**Container:** custom `.svc` — magic bytes, header, section table `(type, offset, length)`, sections (pixel, semantic, temporal index, AI index, metadata), CRC32 per section.
+**Container:** custom `.virex` — magic bytes, header, section table `(type, offset, length)`, sections (pixel, semantic, temporal index, AI index, metadata), CRC32 per section.
 
 Alternatives considered (MessagePack, CBOR) are fine as a stepping stone but add no value over Protobuf plus a custom compact encoder.
 
