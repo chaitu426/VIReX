@@ -1,0 +1,7 @@
+fastapi
+uvicorn
+ultralytics
+paddleocr
+grpcio
+grpcio-tools
+pytest

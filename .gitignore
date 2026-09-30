@@ -1,0 +1,28 @@
+# Go
+/bin/
+*.exe
+*.test
+*.out
+
+# Python
+.venv/
+venv/
+__pycache__/
+*.pyc
+
+# Media and outputs (keep clips out of git)
+tests/testdata/clips/*
+!tests/testdata/clips/.gitkeep
+!tests/testdata/clips/README.md
+*.mp4
+*.mkv
+*.avi
+*.mov
+*.virex
+
+# Models and local files
+*.pt
+*.onnx
+.env
+.idea/
+.vscode/
