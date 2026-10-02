@@ -1,0 +1,66 @@
+{
+  "schemaVersion": 1,
+  "ok": false,
+  "command": "finalize",
+  "status": "fail",
+  "type": "architecture",
+  "quality": "showcase",
+  "specification": {
+    "path": "C:\\Users\\chaitanya.abhade\\Documents\\java\\clproject\\.archify\\architecture-phase1-20261001-221606\\candidate.json",
+    "sha256": "8ca1844b053e26d466071a4fb1d056b34ac1cf81f513320521c853e5a71b7315",
+    "bytes": 14246
+  },
+  "artifact": {
+    "path": "C:\\Users\\chaitanya.abhade\\Documents\\java\\clproject\\.archify\\architecture-phase1-20261001-221606\\phase1-system-flow.html",
+    "sha256": "c4e4a613ca7a493f28b30667f95e5b847ffc4a2b423a72525057e2614cea470a",
+    "bytes": 805054
+  },
+  "gates": {
+    "validate": "pass",
+    "deliver": "pass",
+    "check": "pass",
+    "browser-check": "fail"
+  },
+  "failedStage": "browser-check",
+  "diagnostics": [
+    {
+      "code": "viewer/evidence-path-conflict",
+      "severity": "error",
+      "message": "browser-check will not replace the existing unowned evidence path \"C:\\Users\\chaitanya.abhade\\Documents\\java\\clproject\\.archify\\architecture-phase1-20261001-221606\\phase1-system-flow.browser-check.json\".",
+      "subject": {
+        "artifact": "C:\\Users\\chaitanya.abhade\\Documents\\java\\clproject\\.archify\\architecture-phase1-20261001-221606\\phase1-system-flow.html",
+        "evidencePath": "C:\\Users\\chaitanya.abhade\\Documents\\java\\clproject\\.archify\\architecture-phase1-20261001-221606\\phase1-system-flow.browser-check.json"
+      },
+      "evidence": {
+        "reason": {
+          "code": "ownership-artifact-mismatch"
+        }
+      },
+      "supportedFixes": [
+        "move the conflicting file aside, or choose a separate --out-dir, then rerun browser-check"
+      ]
+    }
+  ],
+  "diagnosticSummary": {
+    "total": 1,
+    "shown": 1,
+    "truncated": false
+  },
+  "evidence": {
+    "receipt": "C:\\Users\\chaitanya.abhade\\Documents\\java\\clproject\\.archify\\architecture-phase1-20261001-221606\\phase1-system-flow.finalize.json",
+    "summaryReceipt": "C:\\Users\\chaitanya.abhade\\Documents\\java\\clproject\\.archify\\architecture-phase1-20261001-221606\\phase1-system-flow.finalize-summary.json",
+    "browserCheckReceipt": "C:\\Users\\chaitanya.abhade\\Documents\\java\\clproject\\.archify\\architecture-phase1-20261001-221606\\phase1-system-flow.browser-check.json"
+  },
+  "update": {
+    "status": "current",
+    "installedVersion": "3.0.1",
+    "availableVersion": "3.0.1",
+    "releaseNotes": null,
+    "checkedAt": "2026-10-01T16:47:07.178Z",
+    "source": "cache",
+    "noticeRequired": false,
+    "noticeText": null
+  },
+  "visualReview": "not-requested",
+  "durationMs": 8752
+}

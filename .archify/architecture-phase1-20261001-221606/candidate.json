@@ -1,0 +1,724 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "VIReX Phase 1 - Encode and Decode System Flow",
+    "output": ".archify/architecture-phase1-20261001-221606/phase1-system-flow.html",
+    "quality_profile": "showcase",
+    "legend": {
+      "mode": "auto",
+      "entries": {
+        "external": {
+          "label": "Input / output"
+        },
+        "backend": {
+          "label": "Go core (built)"
+        },
+        "cloud": {
+          "label": "FFmpeg process"
+        },
+        "database": {
+          "label": "Stored artifact"
+        },
+        "security": {
+          "label": "Planned: Phase 2-4"
+        }
+      }
+    }
+  },
+  "components": [
+    {
+      "id": "video",
+      "type": "external",
+      "label": "Input Video",
+      "sublabel": "mp4 / mkv source",
+      "pos": [
+        40,
+        40
+      ],
+      "size": [
+        130,
+        60
+      ]
+    },
+    {
+      "id": "cli",
+      "type": "backend",
+      "label": "virex-encode",
+      "sublabel": "CLI · flags + JSON",
+      "pos": [
+        240,
+        40
+      ],
+      "size": [
+        130,
+        60
+      ]
+    },
+    {
+      "id": "workers",
+      "type": "security",
+      "label": "Job Queue + Workers",
+      "sublabel": "Phase 4 · planned",
+      "pos": [
+        640,
+        40
+      ],
+      "size": [
+        130,
+        60
+      ]
+    },
+    {
+      "id": "pipe",
+      "type": "backend",
+      "label": "pipeline.Encode - runs the stages in order, owns the work dir, assembles the file",
+      "sublabel": "codec/pipeline",
+      "pos": [
+        40,
+        170
+      ],
+      "size": [
+        930,
+        52
+      ]
+    },
+    {
+      "id": "cost",
+      "type": "backend",
+      "label": "Cost Logger (C1)",
+      "sublabel": "JSON lines per stage",
+      "pos": [
+        40,
+        300
+      ],
+      "size": [
+        130,
+        60
+      ]
+    },
+    {
+      "id": "ingest",
+      "type": "backend",
+      "label": "Ingest · Probe",
+      "sublabel": "info · PTS · DTS",
+      "pos": [
+        240,
+        300
+      ],
+      "size": [
+        130,
+        60
+      ]
+    },
+    {
+      "id": "frames",
+      "type": "cloud",
+      "label": "FFmpeg Frame Pipe",
+      "sublabel": "RGB24 · bounded queue",
+      "pos": [
+        440,
+        300
+      ],
+      "size": [
+        130,
+        60
+      ]
+    },
+    {
+      "id": "svir",
+      "type": "backend",
+      "label": "SVIR Document",
+      "sublabel": "empty or hand-made",
+      "pos": [
+        840,
+        300
+      ],
+      "size": [
+        130,
+        60
+      ]
+    },
+    {
+      "id": "x264",
+      "type": "cloud",
+      "label": "FFmpeg Pixel Path",
+      "sublabel": "x264 CRF 18 or copy",
+      "pos": [
+        240,
+        430
+      ],
+      "size": [
+        130,
+        60
+      ]
+    },
+    {
+      "id": "sched",
+      "type": "backend",
+      "label": "Frame Scheduler",
+      "sublabel": "back-pressure · cancel",
+      "pos": [
+        440,
+        430
+      ],
+      "size": [
+        130,
+        60
+      ]
+    },
+    {
+      "id": "extract",
+      "type": "security",
+      "label": "Semantic Extraction",
+      "sublabel": "Phase 2 · planned",
+      "pos": [
+        640,
+        300
+      ],
+      "size": [
+        130,
+        60
+      ]
+    },
+    {
+      "id": "schemav",
+      "type": "backend",
+      "label": "Validate + Layers",
+      "sublabel": "pixel_ref · layers",
+      "pos": [
+        840,
+        430
+      ],
+      "size": [
+        130,
+        60
+      ]
+    },
+    {
+      "id": "compress",
+      "type": "security",
+      "label": "Temporal Compression",
+      "sublabel": "Phase 3 · planned",
+      "pos": [
+        1040,
+        430
+      ],
+      "size": [
+        130,
+        60
+      ]
+    },
+    {
+      "id": "annexb",
+      "type": "cloud",
+      "label": "Annex B Stream",
+      "sublabel": "mp4toannexb + AUD",
+      "pos": [
+        240,
+        560
+      ],
+      "size": [
+        130,
+        60
+      ]
+    },
+    {
+      "id": "sampler",
+      "type": "backend",
+      "label": "Semantic Sampler",
+      "sublabel": "N · secs · scene cut",
+      "pos": [
+        440,
+        560
+      ],
+      "size": [
+        130,
+        60
+      ]
+    },
+    {
+      "id": "ml",
+      "type": "security",
+      "label": "ML Service",
+      "sublabel": "Phase 2 · YOLO · OCR",
+      "pos": [
+        640,
+        560
+      ],
+      "size": [
+        130,
+        60
+      ]
+    },
+    {
+      "id": "split",
+      "type": "backend",
+      "label": "Frame Index",
+      "sublabel": "AU offsets · pts · dts",
+      "pos": [
+        240,
+        690
+      ],
+      "size": [
+        130,
+        60
+      ]
+    },
+    {
+      "id": "writer",
+      "type": "backend",
+      "label": "Container Writer",
+      "sublabel": "header · table · CRC32",
+      "pos": [
+        240,
+        820
+      ],
+      "size": [
+        130,
+        60
+      ]
+    },
+    {
+      "id": "file",
+      "type": "database",
+      "label": ".virex File",
+      "sublabel": "4 sections · CRC32",
+      "pos": [
+        240,
+        950
+      ],
+      "size": [
+        130,
+        60
+      ]
+    },
+    {
+      "id": "idx",
+      "type": "security",
+      "label": "Query Indexes",
+      "sublabel": "Phase 3 · planned",
+      "pos": [
+        40,
+        950
+      ],
+      "size": [
+        130,
+        60
+      ]
+    },
+    {
+      "id": "api",
+      "type": "security",
+      "label": "Semantic Video API",
+      "sublabel": "Phase 3 · planned",
+      "pos": [
+        40,
+        820
+      ],
+      "size": [
+        130,
+        60
+      ]
+    },
+    {
+      "id": "agent",
+      "type": "security",
+      "label": "LLM Agent",
+      "sublabel": "Phase 4 · planned",
+      "pos": [
+        40,
+        690
+      ],
+      "size": [
+        130,
+        60
+      ]
+    },
+    {
+      "id": "reader",
+      "type": "backend",
+      "label": "Container Reader",
+      "sublabel": "ReadAt · CRC verify",
+      "pos": [
+        440,
+        950
+      ],
+      "size": [
+        130,
+        60
+      ]
+    },
+    {
+      "id": "mux",
+      "type": "backend",
+      "label": "MP4 Muxer (Go)",
+      "sublabel": "stts · ctts · stss",
+      "pos": [
+        640,
+        950
+      ],
+      "size": [
+        130,
+        60
+      ]
+    },
+    {
+      "id": "out",
+      "type": "external",
+      "label": "Playable MP4",
+      "sublabel": "exact pts · pixels",
+      "pos": [
+        840,
+        950
+      ],
+      "size": [
+        130,
+        60
+      ]
+    },
+    {
+      "id": "cliDec",
+      "type": "backend",
+      "label": "virex-decode",
+      "sublabel": "mp4 · info · JSON",
+      "pos": [
+        440,
+        1080
+      ],
+      "size": [
+        130,
+        60
+      ]
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "Pixel path",
+      "wraps": [
+        "x264",
+        "annexb",
+        "split"
+      ]
+    },
+    {
+      "kind": "region",
+      "label": "Sampling lane",
+      "wraps": [
+        "frames",
+        "sched",
+        "sampler"
+      ]
+    },
+    {
+      "kind": "region",
+      "label": "SVIR schema v0.1",
+      "wraps": [
+        "svir",
+        "schemav"
+      ]
+    },
+    {
+      "kind": "region",
+      "label": "Decode path",
+      "wraps": [
+        "reader",
+        "mux",
+        "out",
+        "cliDec"
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "id": "video-to-cli",
+      "from": "video",
+      "to": "cli",
+      "label": "file"
+    },
+    {
+      "id": "cli-to-pipe",
+      "from": "cli",
+      "to": "pipe",
+      "label": "flags",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "workers-to-pipe",
+      "from": "workers",
+      "to": "pipe",
+      "label": "jobs",
+      "variant": "dashed",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "pipe-to-cost",
+      "from": "pipe",
+      "to": "cost",
+      "label": "records",
+      "variant": "dashed",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "via": [
+        [
+          505,
+          250
+        ],
+        [
+          105,
+          250
+        ]
+      ]
+    },
+    {
+      "id": "pipe-to-ingest",
+      "from": "pipe",
+      "to": "ingest",
+      "label": "probe",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "via": [
+        [
+          505,
+          266
+        ],
+        [
+          305,
+          266
+        ]
+      ]
+    },
+    {
+      "id": "pipe-to-svir",
+      "from": "pipe",
+      "to": "svir",
+      "label": "semantic",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "via": [
+        [
+          505,
+          282
+        ],
+        [
+          905,
+          282
+        ]
+      ]
+    },
+    {
+      "id": "ingest-to-x264",
+      "from": "ingest",
+      "to": "x264",
+      "label": "info"
+    },
+    {
+      "id": "ingest-to-frames",
+      "from": "ingest",
+      "to": "frames",
+      "label": "info"
+    },
+    {
+      "id": "x264-to-annexb",
+      "from": "x264",
+      "to": "annexb",
+      "label": "H.264"
+    },
+    {
+      "id": "annexb-to-split",
+      "from": "annexb",
+      "to": "split",
+      "label": "frames"
+    },
+    {
+      "id": "split-to-writer",
+      "from": "split",
+      "to": "writer",
+      "label": "INDEX",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "annexb-to-writer",
+      "from": "annexb",
+      "to": "writer",
+      "label": "PIXEL",
+      "fromSide": "left",
+      "toSide": "left"
+    },
+    {
+      "id": "frames-to-sched",
+      "from": "frames",
+      "to": "sched",
+      "label": "RGB"
+    },
+    {
+      "id": "sched-to-sampler",
+      "from": "sched",
+      "to": "sampler",
+      "label": "queue"
+    },
+    {
+      "id": "sampler-to-ml",
+      "from": "sampler",
+      "to": "ml",
+      "label": "frames",
+      "variant": "dashed"
+    },
+    {
+      "id": "ml-to-extract",
+      "from": "ml",
+      "to": "extract",
+      "label": "boxes",
+      "variant": "dashed"
+    },
+    {
+      "id": "extract-to-svir",
+      "from": "extract",
+      "to": "svir",
+      "label": "SVIR",
+      "variant": "dashed"
+    },
+    {
+      "id": "svir-to-schemav",
+      "from": "svir",
+      "to": "schemav",
+      "label": "document"
+    },
+    {
+      "id": "schemav-to-writer",
+      "from": "schemav",
+      "to": "writer",
+      "label": "SEMANTIC",
+      "fromSide": "bottom",
+      "toSide": "right"
+    },
+    {
+      "id": "sampler-to-writer",
+      "from": "sampler",
+      "to": "writer",
+      "label": "samples",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "schemav-to-compress",
+      "from": "schemav",
+      "to": "compress",
+      "label": "blocks",
+      "variant": "dashed"
+    },
+    {
+      "id": "writer-to-file",
+      "from": "writer",
+      "to": "file",
+      "label": "write"
+    },
+    {
+      "id": "file-to-reader",
+      "from": "file",
+      "to": "reader",
+      "label": "read"
+    },
+    {
+      "id": "cliDec-to-reader",
+      "from": "cliDec",
+      "to": "reader",
+      "label": "open"
+    },
+    {
+      "id": "reader-to-mux",
+      "from": "reader",
+      "to": "mux",
+      "label": "data"
+    },
+    {
+      "id": "mux-to-out",
+      "from": "mux",
+      "to": "out",
+      "label": "mp4"
+    },
+    {
+      "id": "file-to-idx",
+      "from": "file",
+      "to": "idx",
+      "label": "reads",
+      "variant": "dashed",
+      "fromSide": "left",
+      "toSide": "right"
+    },
+    {
+      "id": "idx-to-api",
+      "from": "idx",
+      "to": "api",
+      "label": "lookup",
+      "variant": "dashed"
+    },
+    {
+      "id": "api-to-agent",
+      "from": "api",
+      "to": "agent",
+      "label": "tools",
+      "variant": "dashed"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "What Phase 1 does",
+      "items": [
+        "Reads a video and keeps every frame's real PTS and DTS",
+        "Writes the picture as an H.264 stream, copied or re-encoded",
+        "Chooses frames for later AI analysis (scene change, N, seconds)",
+        "Stores it all in one .virex file and rebuilds a playable mp4"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": ".virex v0.1 sections",
+      "items": [
+        "Header 72 B and section table, CRC32 on every section",
+        "PIXEL: H.264 Annex B with an access unit delimiter per frame",
+        "TEMPORAL_INDEX: 32 B per frame (pts, dts, offset, key)",
+        "SEMANTIC: SVIR Protobuf, one section or one per layer",
+        "METADATA: settings and sampled frames as JSON"
+      ]
+    },
+    {
+      "dot": "slate",
+      "title": "Where the code lives",
+      "items": [
+        "cmd/virex-encode, cmd/virex-decode: the two commands",
+        "codec/pipeline: runs one encode; codec/encoder: ffprobe + frame pipe",
+        "codec/pixel: x264 or copy, Annex B, frame index",
+        "codec/scheduler, codec/sampler: bounded frame flow, frame choice",
+        "svir/schema: Protobuf schema, validation, layers",
+        "codec/container, codec/decoder: file format, MP4 muxer",
+        "cost: per-stage JSON-lines log"
+      ]
+    },
+    {
+      "dot": "violet",
+      "title": "Plugs into the next phases",
+      "items": [
+        "Phase 2: the sampler's sink hands frames and PTS to the ML client; blocks come back as SVIR",
+        "Phase 3: indexes and compact encoding read the same sections; the API reads the file",
+        "Phase 4: workers call pipeline.Encode; the cost log feeds evaluation",
+        "Dashed edges and the boxes marked Planned are not built yet"
+      ]
+    },
+    {
+      "dot": "amber",
+      "title": "Checked by tests",
+      "items": [
+        "Decoded pts, dts and key flags equal the source for every frame",
+        "Copy mode: decoded pixels equal the source; re-encode: SSIM about 0.999 on the real clip",
+        "Memory stays bounded when the consumer is slow",
+        "Damaged sections are rejected by CRC32"
+      ]
+    }
+  ]
+}

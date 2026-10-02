@@ -37,20 +37,20 @@ If these change late, everything built on them breaks. Get them right first, and
 ## 3. Tasks in order
 
 ### Week 1 — Setup and ingestion
-- [ ] Install Go, FFmpeg, Protobuf compiler, Python 3.10+, Git. Create the repo and `README.md`.
-- [ ] Create the folder structure from the architecture doc (section 18).
-- [ ] Write `codec/encoder/ingest.go`. It runs `ffprobe` for FPS, resolution, duration and codec, then reads frames through an `ffmpeg` pipe (raw RGB or JPEG) into Go.
-- [ ] Attach a timestamp and frame id to every frame: `timestamp = frame_id / fps`. Handle variable frame rate by using the real PTS from ffprobe.
-- [ ] Unit test: frame count and last timestamp match ffprobe.
+- [x] Install Go, FFmpeg, Protobuf compiler, Python 3.10+, Git. Create the repo and `README.md`.
+- [x] Create the folder structure from the architecture doc (section 18).
+- [x] Write `codec/encoder/ingest.go`. It runs `ffprobe` for FPS, resolution, duration and codec, then reads frames through an `ffmpeg` pipe (raw RGB or JPEG) into Go.
+- [x] Attach a timestamp and frame id to every frame: `timestamp = frame_id / fps`. Handle variable frame rate by using the real PTS from ffprobe.
+- [x] Unit test: frame count and last timestamp match ffprobe.
 
 ### Week 2 — Scheduler, sampler, pixel pipeline
-- [ ] Build the frame scheduler with goroutines and buffered channels. Add back-pressure.
-- [ ] Build the semantic sampler with three strategies: fixed interval, time interval, scene-change (frame-difference or histogram threshold).
-- [ ] Pixel pipeline: run the FFmpeg H.264 (libx264) encode with configurable CRF and preset. Detect key frames by reading I-frame positions with ffprobe and record them for the temporal index later.
-- [ ] Save the compressed pixel stream to disk.
+- [x] Build the frame scheduler with goroutines and buffered channels. Add back-pressure.
+- [x] Build the semantic sampler with three strategies: fixed interval, time interval, scene-change (frame-difference or histogram threshold).
+- [x] Pixel pipeline: run the FFmpeg H.264 (libx264) encode with configurable CRF and preset. Detect key frames by reading I-frame positions with ffprobe and record them for the temporal index later.
+- [x] Save the compressed pixel stream to disk.
 
 ### Week 3 — SVIR schema
-- [ ] Write `svir/schema/svir.proto`. Use the block model from the architecture doc (section 4). Example fields:
+- [x] Write `svir/schema/svir.proto`. Use the block model from the architecture doc (section 4). Example fields:
   - `Entity { id, type, first_seen, last_seen }`
   - `ObjectBlock { entity_id, class, bbox, confidence, timestamp }`
   - `TextBlock { content, bbox, confidence, timestamp }`
@@ -58,27 +58,27 @@ If these change late, everything built on them breaks. Get them right first, and
   - `EventBlock { type, start, end, entity_ids, region, confidence }`
   - `RelationBlock { subject_id, relation, object_id, start, end }`
   - `SceneBlock { label, context, start, end }`
-- [ ] **[C4]** Add a shared `PixelRef { t_start, t_end, frame_id, bbox }` message and give every block above a `pixel_ref` field, so any semantic fact can be traced back to its pixels.
-- [ ] **[C3]** Add a `layer` field (enum `L0_ENTITY`, `L1_EVENT`, `L2_TEXT`, `L3_EMBEDDING`) to every block. Layers: L0 = entities and objects, L1 = events, actions, relations, scenes, L2 = text, L3 = embeddings and captions.
-- [ ] Add `schema_version` and generate Go code (`protoc-gen-go`).
-- [ ] Write a JSON export helper for SVIR so you can inspect and debug it.
-- [ ] Write hand-made fake SVIR data for one clip so you can test the container before any ML exists.
+- [x] **[C4]** Add a shared `PixelRef { t_start, t_end, frame_id, bbox }` message and give every block above a `pixel_ref` field, so any semantic fact can be traced back to its pixels.
+- [x] **[C3]** Add a `layer` field (enum `L0_ENTITY`, `L1_EVENT`, `L2_TEXT`, `L3_EMBEDDING`) to every block. Layers: L0 = entities and objects, L1 = events, actions, relations, scenes, L2 = text, L3 = embeddings and captions.
+- [x] Add `schema_version` and generate Go code (`protoc-gen-go`).
+- [x] Write a JSON export helper for SVIR so you can inspect and debug it.
+- [x] Write hand-made fake SVIR data for one clip so you can test the container before any ML exists.
 
 ### Week 4 — Container v0.1 and CLIs
-- [ ] Define the binary layout: `magic bytes | header | section table | pixel section | semantic section | index section | metadata`.
-- [ ] Header fields: version, resolution, fps, duration, pixel codec, semantic schema version.
-- [ ] The section table holds `(type, offset, length)` for each section, so any section can be read without scanning the file.
-- [ ] **[C3]** Reserve a `layer` id in the section table entry, so the semantic section can later be split into one stream per layer without changing the container layout.
-- [ ] Write `codec/container/writer.go` and `reader.go`.
-- [ ] Add a CRC32 per section.
-- [ ] `virex-encode input.mp4 -o out.virex` and `virex-decode out.virex -o out.mp4`.
-- [ ] Round-trip test: the decoded video plays and matches the source (check with SSIM or PSNR through FFmpeg).
+- [x] Define the binary layout: `magic bytes | header | section table | pixel section | semantic section | index section | metadata`.
+- [x] Header fields: version, resolution, fps, duration, pixel codec, semantic schema version.
+- [x] The section table holds `(type, offset, length)` for each section, so any section can be read without scanning the file.
+- [x] **[C3]** Reserve a `layer` id in the section table entry, so the semantic section can later be split into one stream per layer without changing the container layout.
+- [x] Write `codec/container/writer.go` and `reader.go`.
+- [x] Add a CRC32 per section.
+- [x] `virex-encode input.mp4 -o out.virex` and `virex-decode out.virex -o out.mp4`.
+- [x] Round-trip test: the decoded video plays and matches the source (check with SSIM or PSNR through FFmpeg).
 
 ### Week 5 (buffer)
-- [ ] Fix bugs, write docs, tidy the code.
-- [ ] Record baseline numbers: encode time, size of source vs pixel stream vs `.virex`.
-- [ ] **[C1]** Add a small cost logger (`cost/`) that records, per run and per stage: wall time, CPU time, bytes in and out, and (from Phase 2) model calls and tokens. Write it as JSON lines. Every later phase reports through it, so the amortization model has real data.
-- [ ] Write the Phase 1 summary for your logbook.
+- [x] Fix bugs, write docs, tidy the code.
+- [x] Record baseline numbers: encode time, size of source vs pixel stream vs `.virex`.
+- [x] **[C1]** Add a small cost logger (`cost/`) that records, per run and per stage: wall time, CPU time, bytes in and out, and (from Phase 2) model calls and tokens. Write it as JSON lines. Every later phase reports through it, so the amortization model has real data.
+- [x] Write the Phase 1 summary for your logbook.
 
 ---
 

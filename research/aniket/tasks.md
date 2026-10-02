@@ -54,7 +54,7 @@ Save notes in `research/aniket/research/`.
 ## Progress
 | # | Note | Status |
 |---|---|---|
-| 1 | Key frames with ffprobe | not started |
-| 2 | CRF, preset and GOP experiment | not started |
-| 3 | SSIM and PSNR | not started |
-| 4 | Recommended defaults | not started |
+| 1 | Key frames with ffprobe | draft by chaitanya |
+| 2 | CRF, preset and GOP experiment | draft by chaitanya |
+| 3 | SSIM and PSNR | draft by chaitanya |
+| 4 | Recommended defaults | draft by chaitanya |
