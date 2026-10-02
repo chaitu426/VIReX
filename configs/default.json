@@ -1,0 +1,21 @@
+{
+  "pixel": {
+    "mode": "auto",
+    "crf": 18,
+    "preset": "medium",
+    "gop_seconds": 2,
+    "threads": 0
+  },
+  "sampler": {
+    "mode": "scene_change",
+    "hist_threshold": 0.35,
+    "mad_threshold": 0.12,
+    "min_gap_seconds": 0.25,
+    "max_gap_seconds": 10
+  },
+  "skip_sampling": false,
+  "semantic": "empty",
+  "split_layers": false,
+  "frame_buffer": 8,
+  "queue_buffer": 4
+}

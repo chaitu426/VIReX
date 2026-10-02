@@ -15,6 +15,7 @@ clproject/
 │   ├── decoder/                 rebuilds frames and the semantic graph
 │   ├── container/               .virex reader and writer
 │   ├── scheduler/               frame flow with bounded channels
+│   ├── pipeline/                wires ingest, pixel, sampler and container into one encode
 │   ├── sampler/                 which frames get semantic analysis
 │   └── pixel/                   H.264 pixel stream and key frames
 ├── semantic/                  Go clients for the ML service
@@ -33,7 +34,7 @@ clproject/
 │   ├── app/main.py              /health endpoint to start
 │   └── requirements.txt
 ├── configs/                   Config files (sampling rate, CRF, model names)
-├── scripts/                   Helper scripts (setup, run, benchmark)
+├── scripts/                   make-testclips.ps1, framebench, printframes
 ├── tests/
 │   ├── integration/             end-to-end Go tests
 │   └── testdata/
@@ -50,7 +51,7 @@ clproject/
 
 ```text
 cmd/virex-encode
-   └─ codec/encoder ─┬─ codec/scheduler ─ codec/sampler ─ semantic/* ──(gRPC)──> ml-service
+   └─ codec/pipeline ── codec/encoder ─┬─ codec/scheduler ─ codec/sampler ─ semantic/* ──(gRPC)──> ml-service
                      │                                        │
                      │                                   temporal/tracker, engine, graph
                      │                                        │
@@ -96,4 +97,5 @@ Rules to keep it clean:
 [ ] Run the ML service:  uvicorn app.main:app --reload   (check http://localhost:8000/health)
 ```
 
-None of Go, FFmpeg or protoc is installed on this machine yet, so `go build ./...` has not been run.
+Go, FFmpeg and protoc are installed on the Phase 1 machine and `go build ./...` passes. Regenerate the schema with:
+`protoc -I svir/schema --go_out=svir/schema --go_opt=paths=source_relative svir/schema/svir.proto`

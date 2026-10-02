@@ -48,6 +48,6 @@ Save notes in `research/anushka/research/`.
 ## Progress
 | # | Note | Status |
 |---|---|---|
-| 1 | RGB vs JPEG vs PNG | not started |
-| 2 | ffprobe and PTS | not started |
-| 3 | Recommended commands | not started |
+| 1 | RGB vs JPEG vs PNG | draft by chaitanya |
+| 2 | ffprobe and PTS | draft by chaitanya |
+| 3 | Recommended commands | draft by chaitanya |

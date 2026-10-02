@@ -168,3 +168,53 @@ Keep them custom and simple. Do not add Elasticsearch or a vector database; they
 2. **CPU only** or GPU available? This decides the model sizes and sampling rate.
 3. Which **LLM** provider is permitted and budgeted?
 4. Expected **evaluation depth** (number of videos, questions, need for a paper).
+
+
+
+
+I'll split that into lighter reads: the Phase 2 doc first, then a quick environment check.
+
+  Read 1 file (ctrl+o to expand)
+
+● Bash(python --version 2>&1; pip list 2>/dev/null | grep -i -E
+      "^(torch|ultralytics|fastapi|uvicorn|grpcio|paddleocr|easyocr|onnxruntime|opencv)" ; nvidia-smi -L 2>&1…)
+  ⎿  Python 3.14.7
+     /usr/bin/bash: line 1: nvidia-smi: command not found
+     fastapi
+     … +6 lines (ctrl+o to expand)
+  ⎿  Allowed by auto mode classifier
+● Bash(pip index versions torch 2>&1 | head -3; pip index versions ultralytics 2>&1 | head -2; py -0 2>&1 | head -8)
+  ⎿  torch (2.14.1)
+     Available versions: 2.14.1, 2.14.0, 2.13.0, 2.12.1, 2.12.0, 2.11.0, 2.10.0, 2.9.1, 2.9.0
+     ultralytics (8.4.171)
+     … +60 lines (ctrl+o to expand)
+  ⎿  (timeout 1m 30s)
+  ⎿  Allowed by auto mode classifier
+
+● Phase 1 is done on my side, and Phase 2's first step doesn't depend on anything outstanding. But a few things should be
+  fixed first, because they get harder once Phase 2 code piles on top.
+
+  What Phase 2 needs from Phase 1, and has  - Sampled frames: they arrive with exact timestamps. The scheduler's sink function is where the ML client plugs in.
+  - Schema: it has pixel_ref and layer on every block, so Phase 2 can fill ObjectBlock, TextBlock and the rest.  - Container: it can hold the semantic data, as one section or one per layer.
+  - Cost logger: it has model_calls and tokens fields ready.
+
+  Before starting, in order of how much they matter
+  1. Nothing is committed. All Phase 1 work is uncommitted. I'd commit it on a phase-1 branch and tag it first. I haven't     done that because you didn't ask.
+  2. Tests quietly lost coverage. When we deleted the synthetic clips, many tests started skipping instead of failing.
+     I'd make them generate small clips on demand, so the safety net is real again before Phase 2 changes the pipeline.
+  3. The ML environment is empty.
+     - Installed: no torch, ultralytics or OCR packages. Python is 3.14.7 only.
+     - Wheels: pip lists torch and ultralytics versions for this Python, so installation looks feasible. I didn't install       anything.
+     - PaddleOCR on 3.14: I haven't checked it, so EasyOCR may be the fallback.
+     - GPU: this machine has none (nvidia-smi isn't present), so it's CPU only. yolov8n at 1–2 sampled frames per second
+       is realistic. The sampler picked only 63 frames from the 9.5-minute clip.
+  4. Footage for ground truth. Phase 2 needs clips with people entering and leaving, on-screen text and events, plus hand     labels for 2–3 of them. We have one clip whose content I haven't looked at, so the team needs to supply real
+     lecture, screen or street footage.
+  5. Human sign-offs. The schema freeze, including the CSGCoT check, and the review of the research notes I drafted are
+     still open. Phase 2 can start without them because schema changes stay additive, but the freeze should be settled
+     before Phase 3.
+
+  My recommendation
+  - Do first: items 1 and 2, which I can do in a few minutes.
+  - Then start Phase 2 Week 1: the FastAPI /detect, /ocr and /health service, with a CPU speed benchmark.
+  - Decision for you: do you want that, and should I commit and tag Phase 1 first?

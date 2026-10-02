@@ -1,0 +1,187 @@
+// SVIR: Semantic Video Intermediate Representation, schema v0.1.
+//
+// Rules (frozen at the end of Phase 1; see docs/svir-schema-v0.1.md):
+//   * Changes after the freeze are ADDITIVE only: new fields, new messages, new enum values.
+//   * Never renumber, retype or reuse a field number. Removed fields go in `reserved`.
+//   * All times are int64 ticks of the container header's `timescale`, so semantic
+//     times line up exactly with pixel timestamps.
+//   * Every block carries `layer` (field 14) and `pixel_ref` (field 15). Block-specific
+//     fields use numbers 1..13.
+syntax = "proto3";
+
+package virex.svir;
+
+option go_package = "virex/svir/schema;schema";
+
+// Layer says which part of the semantic stream a block belongs to. Numbers 1..4 match
+// the layer ids in the .virex section table. UNSPECIFIED means "use the default for
+// this block type" (see schema.DefaultLayer).
+enum Layer {
+  LAYER_UNSPECIFIED = 0;
+  L0_ENTITY = 1;     // entities and objects
+  L1_EVENT = 2;      // events, actions, relations, scenes, temporal blocks
+  L2_TEXT = 3;       // text (OCR)
+  L3_EMBEDDING = 4;  // embeddings and captions
+}
+
+// BBox is a rectangle in normalised coordinates: 0..1, origin top-left,
+// x/y = top-left corner, w/h = size. Resolution independent.
+message BBox {
+  float x = 1;
+  float y = 2;
+  float w = 3;
+  float h = 4;
+}
+
+// PixelRef points back to the pixels a fact was derived from (paper contribution C4).
+message PixelRef {
+  int64 t_start = 1;   // ticks
+  int64 t_end = 2;     // ticks; equal to t_start for a single frame
+  optional int64 frame_id = 3;  // 0-based display-order frame index; absent if not frame-specific
+  BBox bbox = 4;       // region inside the frame, if any
+}
+
+// Entity: something that exists over a span of time and can be referred to by id.
+message Entity {
+  uint64 id = 1;
+  string type = 2;        // e.g. "person", "slide", "car"
+  int64 first_seen = 3;   // ticks
+  int64 last_seen = 4;    // ticks
+  Layer layer = 14;
+  PixelRef pixel_ref = 15;
+}
+
+// ObjectBlock: one detection of an entity at one time.
+message ObjectBlock {
+  uint64 entity_id = 1;
+  string class = 2;       // detector class name
+  BBox bbox = 3;
+  optional float confidence = 4;  // 0..1, absent if unknown
+  int64 timestamp = 5;    // ticks
+  Layer layer = 14;
+  PixelRef pixel_ref = 15;
+}
+
+// TextBlock: text read from the picture (OCR).
+message TextBlock {
+  string content = 1;
+  BBox bbox = 2;
+  optional float confidence = 3;
+  int64 timestamp = 4;    // ticks
+  Layer layer = 14;
+  PixelRef pixel_ref = 15;
+}
+
+// ActionBlock: an entity doing something over an interval.
+message ActionBlock {
+  uint64 subject_id = 1;
+  string action = 2;      // e.g. "writing", "walking"
+  int64 start = 3;        // ticks
+  int64 end = 4;          // ticks
+  optional float confidence = 5;
+  Layer layer = 14;
+  PixelRef pixel_ref = 15;
+}
+
+// EventBlock: something that happened, possibly involving several entities.
+message EventBlock {
+  string type = 1;        // e.g. "slide_change", "person_enters"
+  int64 start = 2;        // ticks
+  int64 end = 3;          // ticks
+  repeated uint64 entity_ids = 4;
+  BBox region = 5;
+  optional float confidence = 6;
+  Layer layer = 14;
+  PixelRef pixel_ref = 15;
+}
+
+// RelationBlock: subject --relation--> object over an interval.
+message RelationBlock {
+  uint64 subject_id = 1;
+  string relation = 2;    // e.g. "holding", "left_of"
+  uint64 object_id = 3;
+  int64 start = 4;        // ticks
+  int64 end = 5;          // ticks
+  optional float confidence = 6;
+  uint64 id = 7;          // 0 = not given; TemporalBlock refers to relations by id
+  Layer layer = 14;
+  PixelRef pixel_ref = 15;
+}
+
+// AttributeBlock: a property of an entity over an interval, like Visual Genome's
+// "horse is brown": key = "color", value = "brown".
+message AttributeBlock {
+  uint64 entity_id = 1;
+  string key = 2;         // e.g. "color", "state"
+  string value = 3;       // e.g. "brown", "open"
+  int64 start = 4;        // ticks
+  int64 end = 5;          // ticks
+  optional float confidence = 6;
+  Layer layer = 14;
+  PixelRef pixel_ref = 15;
+}
+
+// SceneBlock: a labelled stretch of video.
+message SceneBlock {
+  string label = 1;       // short label, e.g. "lecture hall"
+  string context = 2;     // longer description
+  int64 start = 3;        // ticks
+  int64 end = 4;          // ticks
+  Layer layer = 14;
+  PixelRef pixel_ref = 15;
+}
+
+enum TemporalKind {
+  TEMPORAL_KIND_UNSPECIFIED = 0;
+  TEMPORAL_KEY = 1;    // full state at this time (like a key frame)
+  TEMPORAL_DELTA = 2;  // only what changed since base_t (like a delta frame)
+}
+
+// TemporalBlock: scene-graph state over time, for temporal compression in later phases.
+// A KEY block is a full snapshot; a DELTA block lists only what changed since the KEY
+// block at base_t (the Key-SG / Delta-SG idea from CSGCoT).
+message TemporalBlock {
+  TemporalKind kind = 1;
+  int64 t_start = 2;      // ticks
+  int64 t_end = 3;        // ticks
+  int64 base_t = 4;       // DELTA only: t_start of the KEY block this builds on
+  repeated uint64 active_entity_ids = 5;   // KEY: all active entities
+  repeated uint64 added_entity_ids = 6;    // DELTA: entities that appeared
+  repeated uint64 removed_entity_ids = 7;  // DELTA: entities that disappeared
+  repeated uint64 active_relation_ids = 8;   // KEY: all active relations (RelationBlock.id)
+  repeated uint64 added_relation_ids = 9;    // DELTA: relations that appeared
+  repeated uint64 removed_relation_ids = 10; // DELTA: relations that ended
+  Layer layer = 14;
+  PixelRef pixel_ref = 15;
+}
+
+// EmbeddingBlock: a vector and/or caption for a frame or region (layer L3).
+message EmbeddingBlock {
+  string model = 1;       // model that produced the vector
+  repeated float vector = 2 [packed = true];
+  string caption = 3;
+  int64 timestamp = 4;    // ticks
+  Layer layer = 14;
+  PixelRef pixel_ref = 15;
+}
+
+// SVIRDocument is the content of a SEMANTIC section (or one time segment / one layer
+// of it). An empty document is valid: it is what Phase 1 writes.
+message SVIRDocument {
+  uint32 schema_major = 1;
+  uint32 schema_minor = 2;
+  Layer layer = 3;        // which layer this document holds; UNSPECIFIED = mixed / all
+  int64 t_start = 4;      // ticks; both 0 = whole stream
+  int64 t_end = 5;
+
+  repeated Entity entities = 10;
+  repeated ObjectBlock objects = 11;
+  repeated TextBlock texts = 12;
+  repeated ActionBlock actions = 13;
+  repeated EventBlock events = 14;
+  repeated RelationBlock relations = 15;
+  repeated SceneBlock scenes = 16;
+  repeated TemporalBlock temporals = 17;
+  repeated EmbeddingBlock embeddings = 18;
+  repeated AttributeBlock attributes = 19;
+}
