@@ -39,7 +39,7 @@ Save notes in `research/chaitanya/research/`.
 ## Progress
 | # | Note | Status |
 |---|---|---|
-| 1 | MP4 and Matroska structure | not started |
-| 2 | Custom data inside MP4 | not started |
-| 3 | `.virex` file layout | not started |
-| 4 | Final decision | not started |
+| 1 | MP4 and Matroska structure | done (2026-9-30-structure.md) |
+| 2 | Custom data inside MP4 | done (same note) |
+| 3 | `.virex` file layout | done, final in docs/virex-format-v0.1.md |
+| 4 | Final decision | done: custom `.virex` |

@@ -1,0 +1,443 @@
+{
+  "schemaVersion": 1,
+  "ok": false,
+  "command": "finalize",
+  "status": "fail",
+  "type": "architecture",
+  "quality": "showcase",
+  "startedAt": "2026-10-01T16:49:33.495Z",
+  "specification": {
+    "path": "C:\\Users\\chaitanya.abhade\\Documents\\java\\clproject\\.archify\\architecture-phase1-20261001-221606\\candidate.json",
+    "sha256": "8ca1844b053e26d466071a4fb1d056b34ac1cf81f513320521c853e5a71b7315",
+    "bytes": 14246
+  },
+  "artifact": {
+    "path": "C:\\Users\\chaitanya.abhade\\Documents\\java\\clproject\\.archify\\architecture-phase1-20261001-221606\\phase1-system-flow.html",
+    "sha256": "c4e4a613ca7a493f28b30667f95e5b847ffc4a2b423a72525057e2614cea470a",
+    "bytes": 805054
+  },
+  "stages": {
+    "validate": {
+      "status": "pass",
+      "exitCode": 0,
+      "durationMs": null,
+      "execution": "embedded-in-deliver",
+      "command": [
+        "C:\\Users\\chaitanya.abhade\\tools\\node\\node-v24.21.0-win-x64\\node.exe",
+        "C:\\Users\\chaitanya.abhade\\.agents\\skills\\archify\\bin\\archify.mjs",
+        "deliver",
+        "architecture",
+        "C:\\Users\\chaitanya.abhade\\Documents\\java\\clproject\\.archify\\architecture-phase1-20261001-221606\\candidate.json",
+        "C:\\Users\\chaitanya.abhade\\Documents\\java\\clproject\\.archify\\architecture-phase1-20261001-221606\\phase1-system-flow.html",
+        "--quality",
+        "showcase",
+        "--json"
+      ],
+      "receipt": {
+        "schemaVersion": 1,
+        "ok": true,
+        "command": "validate",
+        "specification": {
+          "sha256": "8ca1844b053e26d466071a4fb1d056b34ac1cf81f513320521c853e5a71b7315",
+          "bytes": 14246
+        },
+        "validation": {
+          "checksPassed": 9,
+          "checkCount": 9,
+          "compositionProfile": "showcase",
+          "compositionStatus": "pass",
+          "errors": 0,
+          "warnings": 0
+        }
+      }
+    },
+    "deliver": {
+      "status": "pass",
+      "exitCode": 0,
+      "durationMs": 4821,
+      "command": [
+        "C:\\Users\\chaitanya.abhade\\tools\\node\\node-v24.21.0-win-x64\\node.exe",
+        "C:\\Users\\chaitanya.abhade\\.agents\\skills\\archify\\bin\\archify.mjs",
+        "deliver",
+        "architecture",
+        "C:\\Users\\chaitanya.abhade\\Documents\\java\\clproject\\.archify\\architecture-phase1-20261001-221606\\candidate.json",
+        "C:\\Users\\chaitanya.abhade\\Documents\\java\\clproject\\.archify\\architecture-phase1-20261001-221606\\phase1-system-flow.html",
+        "--quality",
+        "showcase",
+        "--json"
+      ],
+      "receipt": {
+        "schemaVersion": 1,
+        "receiptId": "e94b398e-2a21-4d86-9b98-53786fd22fd5",
+        "ok": true,
+        "command": "deliver",
+        "type": "architecture",
+        "input": "C:\\Users\\chaitanya.abhade\\Documents\\java\\clproject\\.archify\\architecture-phase1-20261001-221606\\candidate.json",
+        "output": "C:\\Users\\chaitanya.abhade\\Documents\\java\\clproject\\.archify\\architecture-phase1-20261001-221606\\phase1-system-flow.html",
+        "specification": {
+          "sha256": "8ca1844b053e26d466071a4fb1d056b34ac1cf81f513320521c853e5a71b7315",
+          "bytes": 14246
+        },
+        "artifact": {
+          "sha256": "c4e4a613ca7a493f28b30667f95e5b847ffc4a2b423a72525057e2614cea470a",
+          "bytes": 805054
+        },
+        "validation": {
+          "checksPassed": 9,
+          "checkCount": 9,
+          "compositionProfile": "showcase",
+          "compositionStatus": "pass",
+          "errors": 0,
+          "warnings": 0
+        },
+        "update": {
+          "status": "unavailable",
+          "installedVersion": null,
+          "availableVersion": null,
+          "releaseNotes": null,
+          "checkedAt": null,
+          "source": null,
+          "noticeRequired": false,
+          "noticeText": null,
+          "reason": "disabled"
+        }
+      }
+    },
+    "check": {
+      "status": "pass",
+      "exitCode": 0,
+      "durationMs": 647,
+      "command": [
+        "C:\\Users\\chaitanya.abhade\\tools\\node\\node-v24.21.0-win-x64\\node.exe",
+        "C:\\Users\\chaitanya.abhade\\.agents\\skills\\archify\\bin\\archify.mjs",
+        "check",
+        "C:\\Users\\chaitanya.abhade\\Documents\\java\\clproject\\.archify\\architecture-phase1-20261001-221606\\phase1-system-flow.html",
+        "--require-provenance"
+      ],
+      "receipt": {
+        "ok": true,
+        "file": "C:\\Users\\chaitanya.abhade\\Documents\\java\\clproject\\.archify\\architecture-phase1-20261001-221606\\phase1-system-flow.html",
+        "artifact": {
+          "sha256": "c4e4a613ca7a493f28b30667f95e5b847ffc4a2b423a72525057e2614cea470a",
+          "bytes": 805054
+        },
+        "checks": [
+          {
+            "name": "single_svg",
+            "ok": true,
+            "details": [
+              "found 1 <svg> block(s)"
+            ]
+          },
+          {
+            "name": "finite_svg",
+            "ok": true,
+            "details": []
+          },
+          {
+            "name": "orthogonal_arrows",
+            "ok": true,
+            "details": []
+          },
+          {
+            "name": "label_route_clearance",
+            "ok": true,
+            "details": []
+          },
+          {
+            "name": "relationship_crossings",
+            "ok": true,
+            "details": []
+          },
+          {
+            "name": "relationship_corridors",
+            "ok": true,
+            "details": []
+          },
+          {
+            "name": "container_border_runs",
+            "ok": true,
+            "details": []
+          },
+          {
+            "name": "route_rhythm",
+            "ok": true,
+            "details": []
+          },
+          {
+            "name": "legend_clearance",
+            "ok": true,
+            "details": []
+          }
+        ],
+        "composition": {
+          "schemaVersion": 1,
+          "profile": "showcase",
+          "status": "pass",
+          "summary": {
+            "errors": 0,
+            "warnings": 0
+          },
+          "metrics": {
+            "properCrossings": 0,
+            "resolvedCrossovers": 2,
+            "ambiguousCorridors": 0,
+            "arrowheadCollisions": 0,
+            "containerBorderRuns": 0,
+            "labelRouteClearanceIssues": 0,
+            "labelCanvasOverflowIssues": 0,
+            "minLabelRouteClearance": 5,
+            "desktopReadabilityIssues": 0,
+            "viewportHeightIssues": 0,
+            "minProjectedNodeTextPx": 6,
+            "maxBends": 3,
+            "routesOverSuggestedBends": 1,
+            "maxStretch": 1.106,
+            "routesOverSuggestedStretch": 0,
+            "minSegmentPx": 24,
+            "minInteriorSegmentPx": 83,
+            "shortSegmentCount": 0,
+            "shortEndpointSegmentCount": 0,
+            "shortInteriorSegmentCount": 0,
+            "microSegmentCount": 0
+          },
+          "suggestedLimits": {
+            "bendsPerRelationship": 2,
+            "stretch": 1.35,
+            "segmentPx": 16,
+            "microSegmentPx": 8
+          },
+          "routeReview": {
+            "crossings": [
+              {
+                "left": {
+                  "id": "pipe-to-cost",
+                  "from": "pipe",
+                  "to": "cost",
+                  "label": "records",
+                  "collectionIndex": 3,
+                  "artifactIndex": 4
+                },
+                "right": {
+                  "id": "pipe-to-ingest",
+                  "from": "pipe",
+                  "to": "ingest",
+                  "label": "probe",
+                  "collectionIndex": 4,
+                  "artifactIndex": 5
+                },
+                "point": [
+                  491,
+                  261
+                ],
+                "sharedNode": "pipe"
+              },
+              {
+                "left": {
+                  "id": "split-to-writer",
+                  "from": "split",
+                  "to": "writer",
+                  "label": "INDEX",
+                  "collectionIndex": 10,
+                  "artifactIndex": 11
+                },
+                "right": {
+                  "id": "annexb-to-writer",
+                  "from": "annexb",
+                  "to": "writer",
+                  "label": "PIXEL",
+                  "collectionIndex": 11,
+                  "artifactIndex": 12
+                },
+                "point": [
+                  416,
+                  843
+                ],
+                "sharedNode": "writer"
+              }
+            ],
+            "crowdedSides": [
+              {
+                "node": "pipe",
+                "label": "pipeline.Encode - runs the stages in order, owns the work dir, assembles the file",
+                "side": "left",
+                "relationships": 3,
+                "sidePx": 52,
+                "neededPx": 60
+              }
+            ],
+            "detours": [
+              {
+                "relationship": {
+                  "id": "split-to-writer",
+                  "from": "split",
+                  "to": "writer",
+                  "label": "INDEX",
+                  "collectionIndex": 10,
+                  "artifactIndex": 11
+                },
+                "bends": 3,
+                "stretch": 1
+              }
+            ]
+          },
+          "leadingSpace": {
+            "measured": true,
+            "emptyTopPx": 40,
+            "emptyTopRatio": 0.033,
+            "occupiedTop": 40,
+            "viewBoxTop": 0,
+            "canvasHeight": 1228,
+            "typicalNodeHeight": 60,
+            "reviewSuggested": false
+          },
+          "desktopReadability": {
+            "budgetBasis": "legacy-930",
+            "readerContract": "declared-wide-v1",
+            "availableDiagramWidth": 930,
+            "actualBudgetPx": 930,
+            "limit": "legacy",
+            "requestedTargetPx": 7.5,
+            "requestedTargetMet": false,
+            "hardFloorPx": 6,
+            "hardFloorMet": true,
+            "minimumOwner": {
+              "kind": "edge",
+              "id": "video-to-cli",
+              "from": "video",
+              "to": "cli"
+            },
+            "minimumSourceTextPx": 8,
+            "minimumProjectedTextPx": 6,
+            "semanticTextCount": 85
+          },
+          "issues": []
+        },
+        "provenance": "current",
+        "deliveryReceiptId": "e94b398e-2a21-4d86-9b98-53786fd22fd5"
+      }
+    },
+    "browser-check": {
+      "status": "fail",
+      "exitCode": 1,
+      "durationMs": 145,
+      "command": [
+        "C:\\Users\\chaitanya.abhade\\tools\\node\\node-v24.21.0-win-x64\\node.exe",
+        "C:\\Users\\chaitanya.abhade\\.agents\\skills\\archify\\bin\\archify.mjs",
+        "browser-check",
+        "C:\\Users\\chaitanya.abhade\\Documents\\java\\clproject\\.archify\\architecture-phase1-20261001-221606\\phase1-system-flow.html",
+        "--json",
+        "--require-provenance"
+      ],
+      "execution": "in-process",
+      "receipt": {
+        "schemaVersion": 1,
+        "ok": false,
+        "command": "browser-check",
+        "evidenceKind": "automated-browser",
+        "status": "fail",
+        "visualReview": "not-requested",
+        "provenance": "current",
+        "deliveryReceiptId": "e94b398e-2a21-4d86-9b98-53786fd22fd5",
+        "artifact": {
+          "path": "C:\\Users\\chaitanya.abhade\\Documents\\java\\clproject\\.archify\\architecture-phase1-20261001-221606\\phase1-system-flow.html",
+          "sha256": "c4e4a613ca7a493f28b30667f95e5b847ffc4a2b423a72525057e2614cea470a",
+          "bytes": 805054
+        },
+        "state": {
+          "detail": "read",
+          "motion": "still"
+        },
+        "chrome": {
+          "status": "not-checked",
+          "executable": null
+        },
+        "diagnostics": [
+          {
+            "code": "viewer/evidence-path-conflict",
+            "severity": "error",
+            "message": "browser-check will not replace the existing unowned evidence path \"C:\\Users\\chaitanya.abhade\\Documents\\java\\clproject\\.archify\\architecture-phase1-20261001-221606\\phase1-system-flow.browser-check.json\".",
+            "subject": {
+              "artifact": "C:\\Users\\chaitanya.abhade\\Documents\\java\\clproject\\.archify\\architecture-phase1-20261001-221606\\phase1-system-flow.html",
+              "evidencePath": "C:\\Users\\chaitanya.abhade\\Documents\\java\\clproject\\.archify\\architecture-phase1-20261001-221606\\phase1-system-flow.browser-check.json"
+            },
+            "evidence": {
+              "reason": {
+                "code": "ownership-artifact-mismatch"
+              }
+            },
+            "supportedFixes": [
+              "move the conflicting file aside, or choose a separate --out-dir, then rerun browser-check"
+            ]
+          }
+        ],
+        "containment": {
+          "status": "fail",
+          "policy": "fit-or-reader-declared-readable-vertical-scroll",
+          "viewports": []
+        },
+        "themeStates": {
+          "status": "fail",
+          "viewports": []
+        },
+        "readability": {
+          "status": "fail",
+          "minimumProjectedNodeTextPx": 6,
+          "viewports": []
+        },
+        "viewerChrome": {
+          "status": "fail",
+          "viewports": []
+        },
+        "captures": {
+          "status": "not-requested",
+          "screenshots": [],
+          "contactSheet": null
+        },
+        "sidecars": {
+          "receipt": "phase1-system-flow.browser-check.json",
+          "files": []
+        },
+        "error": "browser-check will not replace the existing unowned evidence path \"C:\\Users\\chaitanya.abhade\\Documents\\java\\clproject\\.archify\\architecture-phase1-20261001-221606\\phase1-system-flow.browser-check.json\"."
+      }
+    }
+  },
+  "diagnostics": [
+    {
+      "code": "viewer/evidence-path-conflict",
+      "severity": "error",
+      "message": "browser-check will not replace the existing unowned evidence path \"C:\\Users\\chaitanya.abhade\\Documents\\java\\clproject\\.archify\\architecture-phase1-20261001-221606\\phase1-system-flow.browser-check.json\".",
+      "subject": {
+        "artifact": "C:\\Users\\chaitanya.abhade\\Documents\\java\\clproject\\.archify\\architecture-phase1-20261001-221606\\phase1-system-flow.html",
+        "evidencePath": "C:\\Users\\chaitanya.abhade\\Documents\\java\\clproject\\.archify\\architecture-phase1-20261001-221606\\phase1-system-flow.browser-check.json"
+      },
+      "evidence": {
+        "reason": {
+          "code": "ownership-artifact-mismatch"
+        }
+      },
+      "supportedFixes": [
+        "move the conflicting file aside, or choose a separate --out-dir, then rerun browser-check"
+      ]
+    }
+  ],
+  "evidence": {
+    "receipt": "C:\\Users\\chaitanya.abhade\\Documents\\java\\clproject\\.archify\\architecture-phase1-20261001-221606\\phase1-system-flow.finalize.json",
+    "summaryReceipt": "C:\\Users\\chaitanya.abhade\\Documents\\java\\clproject\\.archify\\architecture-phase1-20261001-221606\\phase1-system-flow.finalize-summary.json",
+    "browserCheckReceipt": "C:\\Users\\chaitanya.abhade\\Documents\\java\\clproject\\.archify\\architecture-phase1-20261001-221606\\phase1-system-flow.browser-check.json"
+  },
+  "visualReview": "not-requested",
+  "failedStage": "browser-check",
+  "finishedAt": "2026-10-01T16:49:42.247Z",
+  "durationMs": 8752,
+  "update": {
+    "status": "current",
+    "installedVersion": "3.0.1",
+    "availableVersion": "3.0.1",
+    "releaseNotes": null,
+    "checkedAt": "2026-10-01T16:47:07.178Z",
+    "source": "cache",
+    "noticeRequired": false,
+    "noticeText": null
+  }
+}

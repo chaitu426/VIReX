@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "receiptId": "16fef22a-aec3-4ee3-a786-fbb9d2d3e226",
+  "status": "current",
+  "command": "deliver",
+  "type": "architecture",
+  "input": "C:\\Users\\chaitanya.abhade\\Documents\\java\\clproject\\.archify\\architecture-phase1-20261001-221606\\candidate.json",
+  "output": "C:\\Users\\chaitanya.abhade\\Documents\\java\\clproject\\.archify\\architecture-phase1-20261001-221606\\phase1-system-flow.html",
+  "specification": {
+    "sha256": "5176a86d8434106c4be07908a3d731bdb6d76e6fbab334735dd45efb93776827",
+    "bytes": 14621
+  },
+  "artifact": {
+    "sha256": "e706f3b1837fd124f83db6cc5237c29da14c3947126e20420266828c09b27d61",
+    "bytes": 804109
+  }
+}

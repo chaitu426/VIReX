@@ -54,9 +54,9 @@ Save notes in `research/deep/research/`.
 ## Progress
 | # | Note | Status |
 |---|---|---|
-| 1 | MPEG-7 | not started |
-| 2 | Visual Genome and scene graphs | not started |
-| 3 | COCO and AVA | not started |
-| 4 | Key-SG and Delta-SG | not started |
-| 5 | Protobuf safe changes | not started |
-| 6 | Final recommendation | not started |
+| 1 | MPEG-7 | draft by chaitanya |
+| 2 | Visual Genome and scene graphs | draft by chaitanya |
+| 3 | COCO and AVA | draft, same note (COCO row from memory) |
+| 4 | Key-SG and Delta-SG | draft, same note (abstract only; paper not read) |
+| 5 | Protobuf safe changes |draft by chaitanya in docs/svir-schema-v0.1.md section 3, needs review |
+| 6 | Final recommendation | draft, same note |
