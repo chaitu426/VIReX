@@ -1,0 +1,42 @@
+{
+  "pixel": { "mode": "auto", "crf": 18, "preset": "medium", "gop_seconds": 2, "threads": 0 },
+  "sampler": {
+    "mode": "scene_change",
+    "hist_threshold": 0.35,
+    "mad_threshold": 0.12,
+    "min_gap_seconds": 0.25,
+    "max_gap_seconds": 1
+  },
+  "semantic": "ml",
+  "split_layers": false,
+  "frame_buffer": 8,
+  "queue_buffer": 4,
+
+  "ml": {
+    "detect_addr": "127.0.0.1:50051",
+    "ocr_addr": "127.0.0.1:50052",
+    "timeout_seconds": 30,
+    "retries": 2,
+    "backoff_ms": 200,
+    "max_message_mb": 64,
+    "format": "rgb24",
+    "workers": 4,
+    "no_detect": false,
+    "no_ocr": false,
+    "detect_min_confidence": 0,
+    "ocr_min_confidence": 0,
+    "static_levels": 6,
+    "max_frame_errors": 0,
+    "connect_timeout_seconds": 20,
+    "ready_timeout_seconds": 300
+  },
+
+  "engine": {
+    "tracker": { "match_iou": 0.3, "dist_gate": 0.6, "max_gap_seconds": 3, "min_hits": 2 },
+    "text": { "min_similarity": 0.7, "min_iou": 0.3, "max_gap_seconds": 2, "min_hits": 2, "min_chars": 2 },
+    "events": { "edge_margin": 0.05, "edge_sides": "lr", "boundary_seconds": 2, "text_change_seconds": 3 },
+    "motion": { "walk_enter": 0.3, "walk_exit": 0.15, "min_segment_seconds": 1 },
+    "relations": { "near_enter": 1.0, "near_exit": 1.4, "hold_enter": 0.5, "hold_exit": 0.3, "min_hits": 2, "gap_seconds": 3 },
+    "svir": { "bbox_delta": 0.02, "key_interval_seconds": 30 }
+  }
+}

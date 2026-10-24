@@ -1,0 +1,6 @@
+# Real models. Installed on top of requirements.txt, after a CPU-only torch (see Dockerfile).
+ultralytics>=8.3,<9
+easyocr>=1.7.2,<2
+# opencv-python-headless is pulled in by both; the headless build has no GUI libraries,
+# which keeps the image small and avoids missing libGL errors in slim containers.
+opencv-python-headless>=4.9

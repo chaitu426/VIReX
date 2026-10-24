@@ -1,7 +1,11 @@
-fastapi
-uvicorn
-ultralytics
-paddleocr
-grpcio
-grpcio-tools
-pytest
+# Base: everything the service needs with the fake backends (no torch, no weights).
+# Ranges, not pins: the Dockerfile installs these and the build log records the result.
+# Pin exact versions (pip freeze > requirements.lock) once the first image has been
+# built and verified on the target machine.
+grpcio>=1.66,<2
+grpcio-health-checking>=1.66,<2
+protobuf>=5.27,<7
+numpy>=1.26,<3
+pillow>=10.4
+fastapi>=0.115
+uvicorn>=0.30

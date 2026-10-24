@@ -19,8 +19,9 @@ type Record struct {
 	CPUMS      float64 `json:"cpu_ms"`
 	BytesIn    int64   `json:"bytes_in"`
 	BytesOut   int64   `json:"bytes_out"`
-	ModelCalls int     `json:"model_calls"` // filled from Phase 2
-	Tokens     int64   `json:"tokens"`      // filled from Phase 2
+	ModelCalls int     `json:"model_calls"`     // filled from Phase 2
+	Tokens     int64   `json:"tokens"`          // filled from Phase 2
+	Model      string  `json:"model,omitempty"` // "name version" of the model behind ModelCalls
 	Note       string  `json:"note,omitempty"`
 }
 
@@ -80,6 +81,9 @@ func (s *Span) Bytes(in, out int64) { s.rec.BytesIn, s.rec.BytesOut = in, out }
 
 // Model records model calls and tokens (Phase 2 onwards).
 func (s *Span) Model(calls int, tokens int64) { s.rec.ModelCalls, s.rec.Tokens = calls, tokens }
+
+// ModelName records which model (name and version) the stage called.
+func (s *Span) ModelName(m string) { s.rec.Model = m }
 
 // Note attaches a short remark.
 func (s *Span) Note(n string) { s.rec.Note = n }

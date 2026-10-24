@@ -1,0 +1,63 @@
+# VIReX ML services (CPU). Two containers from one image: object detector and OCR.
+#
+#   docker compose build            build the image once (the first build downloads ~2 GB)
+#   docker compose up -d            start detector (gRPC :50051) and OCR (gRPC :50052)
+#   docker compose ps               wait until both say "healthy"
+#   virex-encode clip.mp4 -semantic ml      (configs/default.json already points at these ports)
+#   docker compose down
+#
+# Variants, layered on top of this file:
+#   docker compose -f docker-compose.yml -f docker-compose.gpu.yml up -d     NVIDIA GPU
+#   docker compose -f docker-compose.yml -f docker-compose.fake.yml up -d    test doubles, no models
+#
+# The Go side never knows which model runs: change VIREX_DETECTOR_MODEL or
+# VIREX_OCR_BACKEND below and restart the container.
+#
+# Ports are bound to 127.0.0.1 only. The gRPC API has no authentication; put it behind a
+# private network or a proxy before exposing it anywhere else.
+
+x-ml-common: &ml-common
+  image: virex-ml:latest
+  build:
+    context: .
+    dockerfile: ml-service/Dockerfile
+  restart: unless-stopped
+  init: true
+  stop_grace_period: 15s
+  logging:
+    driver: json-file
+    options: { max-size: "10m", max-file: "3" }
+
+services:
+  detector:
+    <<: *ml-common
+    environment:
+      VIREX_ROLE: detector
+      VIREX_GRPC_PORT: "50051"
+      VIREX_DEVICE: cpu
+      VIREX_DETECTOR_BACKEND: ultralytics
+      VIREX_DETECTOR_MODEL: yolov8n.pt
+      VIREX_DETECT_CONF: "0.35"
+      VIREX_TORCH_THREADS: "0"
+    ports:
+      - "127.0.0.1:50051:50051"
+      - "127.0.0.1:8001:8000"   # HTTP debug API: curl --data-binary @frame.jpg localhost:8001/detect
+    deploy:
+      resources:
+        limits: { memory: 3g }
+
+  ocr:
+    <<: *ml-common
+    environment:
+      VIREX_ROLE: ocr
+      VIREX_GRPC_PORT: "50052"
+      VIREX_DEVICE: cpu
+      VIREX_OCR_BACKEND: easyocr
+      VIREX_OCR_LANGS: en
+      VIREX_OCR_CONF: "0.4"
+    ports:
+      - "127.0.0.1:50052:50052"
+      - "127.0.0.1:8002:8000"   # HTTP debug API: curl --data-binary @frame.jpg localhost:8002/ocr
+    deploy:
+      resources:
+        limits: { memory: 3g }

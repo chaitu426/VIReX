@@ -17,11 +17,13 @@ import (
 	"virex/codec/sampler"
 	"virex/codec/scheduler"
 	"virex/cost"
+	"virex/semantic/analyze"
 	"virex/svir/schema"
+	"virex/temporal/engine"
 )
 
 // ToolVersion is written into every file's metadata.
-const ToolVersion = "virex-encode 0.1"
+const ToolVersion = "virex-encode 0.2"
 
 // Config is everything an encode needs. It is the shape of configs/default.json.
 type Config struct {
@@ -30,9 +32,14 @@ type Config struct {
 
 	// SkipSampling skips the sampling pass (it decodes the whole video once more).
 	SkipSampling bool `json:"skip_sampling"`
-	// Semantic selects the SVIR content: "empty" (Phase 1 default) or "fake" (hand-made
-	// data, for testing the container and tools).
+	// Semantic selects the SVIR content: "empty" (Phase 1 default), "fake" (hand-made
+	// data, for testing the container and tools) or "ml" (real detection, OCR, tracking,
+	// events: needs the ML containers, see docker-compose.yml).
 	Semantic string `json:"semantic"`
+	// ML configures the connection to the ML containers (used when Semantic is "ml").
+	ML MLConfig `json:"ml"`
+	// Engine configures tracking and the event, action and relation rules (Semantic "ml").
+	Engine engine.Config `json:"engine"`
 	// SplitLayers stores one SEMANTIC section per layer instead of one for all.
 	SplitLayers bool `json:"split_layers"`
 
@@ -48,6 +55,7 @@ func DefaultConfig() Config {
 		Pixel:       pixel.Options{Mode: pixel.ModeAuto, CRF: pixel.DefaultCRF, Preset: pixel.DefaultPreset, GOPSeconds: pixel.DefaultGOPSeconds},
 		Sampler:     sampler.Config{Mode: sampler.SceneChange, MaxGapSeconds: 10},
 		Semantic:    "empty",
+		Engine:      engine.DefaultConfig(),
 		FrameBuffer: 8,
 		QueueBuffer: 4,
 	}
@@ -61,12 +69,20 @@ type Report struct {
 	Frames        int
 	KeyFrames     int
 	Sampled       int
+	Semantic      *SemanticSummary // nil unless Config.Semantic is "ml"
 	SourceBytes   int64
 	PixelBytes    int64
 	OutputBytes   int64
 	Width, Height int
 	Timescale     uint32
 	Warnings      []string
+}
+
+// SemanticSummary counts what the semantic pass produced.
+type SemanticSummary struct {
+	Entities, Objects, Texts, Events, Actions, Relations, Shots int
+	Models                                                      []ModelRecord
+	SemanticMeta
 }
 
 // SampleRecord is one sampled frame as stored in the metadata section.
@@ -87,6 +103,11 @@ type Metadata struct {
 	Sampler      sampler.Config `json:"sampler"`
 	Samples      []SampleRecord `json:"samples"`
 	AudioDropped string         `json:"audio_dropped,omitempty"`
+	// Set when the semantic pass ran (semantic "ml"): which models produced the results
+	// and what the pass did, so every block can be traced to a model version.
+	Models   []ModelRecord `json:"models,omitempty"`
+	Semantic *SemanticMeta `json:"semantic_pass,omitempty"`
+	Engine   *engine.Config `json:"engine,omitempty"`
 	Frames       int            `json:"frames"`
 	KeyFrames    int            `json:"key_frames"`
 }
@@ -124,13 +145,43 @@ func Encode(ctx context.Context, src, out string, cfg Config, log *cost.Logger) 
 			fmt.Sprintf("source has %s audio; audio is not stored in .virex v0.1, the decoded video will be silent", ac))
 	}
 
+	// Connect to the ML containers first: a stopped container or a wrong address should
+	// fail in seconds, not after minutes of pixel encoding.
+	var rt *mlRuntime
+	if cfg.Semantic == SemanticML {
+		if cfg.SkipSampling {
+			return nil, fmt.Errorf("pipeline: skip_sampling cannot be combined with semantic %q (the semantic pass is the sampling pass)", SemanticML)
+		}
+		rep.Warnings = append(rep.Warnings, samplingWarnings(cfg, vi)...)
+		sp := log.Stage("ml_connect")
+		rt, err = openML(ctx, cfg.ML)
+		if err != nil {
+			return nil, err
+		}
+		defer rt.Close()
+		sp.Note(fmt.Sprintf("%d model(s) ready", len(rt.models)))
+		sp.End()
+	}
+
 	work, err := os.MkdirTemp(filepath.Dir(absOr(out)), ".virex-work-")
 	if err != nil {
 		return nil, err
 	}
 	defer os.RemoveAll(work)
 
-	px, err := pixel.Encode(ctx, src, vi, pkts, work, cfg.Pixel, log)
+	var (
+		px      *pixel.Result
+		eng     *engine.Engine
+		samples []SampleRecord
+		astats  analyze.Stats
+	)
+	if rt != nil {
+		// The pixel pipeline and the semantic pipeline are independent readers of the source
+		// file: run them side by side.
+		px, eng, samples, astats, err = encodeBoth(ctx, src, vi, pkts, work, cfg, rt, log)
+	} else {
+		px, err = pixel.Encode(ctx, src, vi, pkts, work, cfg.Pixel, log)
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -139,7 +190,10 @@ func Encode(ctx context.Context, src, out string, cfg Config, log *cost.Logger) 
 	meta.PixelMode, meta.Pixel, meta.Frames, meta.KeyFrames = px.Mode, cfg.Pixel, len(px.Records), px.KeyFrames
 	meta.Sampler = cfg.Sampler
 
-	if !cfg.SkipSampling {
+	if rt != nil {
+		meta.Samples = samples
+		rep.Sampled = len(samples)
+	} else if !cfg.SkipSampling {
 		sp := log.Stage("sample")
 		samples, err := runSampler(ctx, src, vi, pkts, cfg, ptsScale(vi, px.Timescale))
 		if err != nil {
@@ -152,7 +206,34 @@ func Encode(ctx context.Context, src, out string, cfg Config, log *cost.Logger) 
 		sp.End()
 	}
 
-	semantic, err := buildSemantic(cfg, px)
+	var mlDoc *schema.SVIRDocument
+	if rt != nil {
+		sp := log.Stage("semantic_build")
+		g, err := eng.Finish(int64(px.Duration))
+		if err != nil {
+			return nil, err
+		}
+		mlDoc, err = g.ToSVIR(cfg.Engine.SVIR)
+		if err != nil {
+			return nil, err
+		}
+		sm := SemanticMeta{
+			Frames: astats.Frames, DetectCalls: astats.DetectCalls, OCRCalls: astats.OCRCalls, OCRReused: astats.OCRReused,
+			FailedFrames: astats.FailedFrames, InferenceMS: astats.InferenceMS, Warnings: astats.Warnings,
+		}
+		meta.Models, meta.Semantic, meta.Engine = rt.models, &sm, &cfg.Engine
+		rep.Semantic = &SemanticSummary{
+			Entities: len(mlDoc.Entities), Objects: len(mlDoc.Objects), Texts: len(mlDoc.Texts), Events: len(mlDoc.Events),
+			Actions: len(mlDoc.Actions), Relations: len(mlDoc.Relations), Shots: len(mlDoc.Scenes),
+			Models: rt.models, SemanticMeta: sm,
+		}
+		for _, w := range astats.Warnings {
+			rep.Warnings = append(rep.Warnings, w)
+		}
+		sp.Note(fmt.Sprintf("%d entities, %d events, %d relations", len(mlDoc.Entities), len(mlDoc.Events), len(mlDoc.Relations)))
+		sp.End()
+	}
+	semantic, err := buildSemantic(cfg, px, mlDoc)
 	if err != nil {
 		return nil, err
 	}
@@ -211,7 +292,7 @@ type section struct {
 	data  []byte
 }
 
-func buildSemantic(cfg Config, px *pixel.Result) ([]section, error) {
+func buildSemantic(cfg Config, px *pixel.Result, mlDoc *schema.SVIRDocument) ([]section, error) {
 	var doc *schema.SVIRDocument
 	switch cfg.Semantic {
 	case "", "empty":
@@ -219,8 +300,13 @@ func buildSemantic(cfg Config, px *pixel.Result) ([]section, error) {
 		doc.TEnd = int64(px.Duration)
 	case "fake":
 		doc = schema.Example(int64(px.Timescale), float64(px.Duration)/float64(px.Timescale))
+	case SemanticML:
+		if mlDoc == nil {
+			return nil, fmt.Errorf("pipeline: semantic %q produced no document", SemanticML)
+		}
+		doc = mlDoc
 	default:
-		return nil, fmt.Errorf("pipeline: unknown semantic mode %q (want empty or fake)", cfg.Semantic)
+		return nil, fmt.Errorf("pipeline: unknown semantic mode %q (want empty, fake or %s)", cfg.Semantic, SemanticML)
 	}
 	schema.Normalize(doc)
 	if err := schema.Validate(doc, true); err != nil {

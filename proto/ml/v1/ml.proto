@@ -1,0 +1,125 @@
+// ML service contract between the Go core and the Python model containers (Phase 2).
+//
+// Two independent services, so each can run in its own container, be scaled on its own,
+// and be swapped without touching Go:
+//
+//   ObjectDetector  - what is in the picture (boxes + classes)
+//   TextReader      - what the picture says (OCR)
+//
+// Rules (same spirit as svir.proto):
+//   * Changes are ADDITIVE only. Never renumber or retype a field.
+//   * Boxes are normalised 0..1, origin top-left, x/y = top-left corner, w/h = size.
+//     This is the same convention as SVIR's BBox, so Go copies them straight across.
+//   * The server never sees timestamps or frame ids except to echo them back; all
+//     time logic stays in Go.
+syntax = "proto3";
+
+package virex.ml.v1;
+
+option go_package = "virex/proto/ml/v1;mlv1";
+
+message BBox {
+  float x = 1;
+  float y = 2;
+  float w = 3;
+  float h = 4;
+}
+
+// Image is one frame. RGB24 is raw, row-major, width*height*3 bytes, no padding: no
+// codec cost on either side and no compression loss (best for OCR). JPEG and PNG
+// are for slow links or tools.
+message Image {
+  enum Format {
+    FORMAT_UNSPECIFIED = 0;
+    RGB24 = 1;
+    JPEG = 2;
+    PNG = 3;
+  }
+  Format format = 1;
+  uint32 width = 2;    // required for RGB24; optional for JPEG/PNG (read from the data)
+  uint32 height = 3;   // required for RGB24
+  bytes data = 4;
+}
+
+// ModelInfo identifies the model that produced a result. It is copied into the .virex
+// metadata and the cost log so every result can be traced to a model version.
+message ModelInfo {
+  string name = 1;      // e.g. "yolov8n"
+  string version = 2;   // library + weights version, e.g. "ultralytics 8.3.0"
+  string backend = 3;   // e.g. "ultralytics", "easyocr", "fake"
+  string device = 4;    // "cpu", "cuda:0"
+  repeated string classes = 5;  // detector only: class names the model can output
+}
+
+message InfoRequest {}
+
+message InfoResponse {
+  ModelInfo model = 1;
+  string service_version = 2;
+  bool ready = 3;       // false while the model is still loading
+}
+
+// ---- Object detection ----
+
+message DetectRequest {
+  Image image = 1;
+  float min_confidence = 2;       // 0 = server default
+  uint32 max_detections = 3;      // 0 = server default
+  repeated string classes = 4;    // empty = every class
+  uint32 inference_size = 5;      // longest side the model runs at; 0 = server default
+  string request_id = 6;          // echoed back, for log correlation
+}
+
+message Detection {
+  string class_name = 1;
+  uint32 class_id = 2;
+  float confidence = 3;
+  BBox box = 4;
+}
+
+message DetectResponse {
+  repeated Detection detections = 1;
+  ModelInfo model = 2;
+  float inference_ms = 3;         // time spent inside the model on the server
+  float total_ms = 4;             // decode + inference + encode on the server
+  string request_id = 5;
+  uint32 image_width = 6;         // size the server actually saw
+  uint32 image_height = 7;
+}
+
+service ObjectDetector {
+  rpc Info(InfoRequest) returns (InfoResponse);
+  rpc Detect(DetectRequest) returns (DetectResponse);
+}
+
+// ---- OCR ----
+
+message ReadRequest {
+  Image image = 1;
+  float min_confidence = 2;       // 0 = server default
+  repeated string languages = 3;  // e.g. ["en"]; empty = server default
+  string request_id = 4;
+}
+
+// TextLine is one recognised line or word with its box. The server decides the unit
+// (line for PaddleOCR, phrase for EasyOCR); Go treats each as an opaque piece of text.
+message TextLine {
+  string text = 1;
+  float confidence = 2;
+  BBox box = 3;                   // axis-aligned box around the text
+}
+
+message ReadResponse {
+  repeated TextLine lines = 1;
+  ModelInfo model = 2;
+  float inference_ms = 3;
+  float total_ms = 4;
+  string request_id = 5;
+  uint32 image_width = 6;
+  uint32 image_height = 7;
+}
+
+service TextReader {
+  rpc Info(InfoRequest) returns (InfoResponse);
+  rpc Read(ReadRequest) returns (ReadResponse);
+}

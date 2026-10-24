@@ -1,0 +1,8 @@
+# Keep the build context small: the image needs only /proto and /ml-service.
+*
+!proto/ml/v1/ml.proto
+!ml-service/
+ml-service/.venv
+ml-service/**/__pycache__
+ml-service/app/gen
+ml-service/tests
