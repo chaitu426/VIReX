@@ -1,7 +1,6 @@
 # Go
 /bin/
 *.exe
-*.test
 *.out
 
 # Python
@@ -14,7 +13,6 @@ __pycache__/
 tests/testdata/clips/*
 !tests/testdata/clips/.gitkeep
 !tests/testdata/clips/README.md
-*.mp4
 *.mkv
 *.avi
 *.mov
@@ -26,3 +24,10 @@ tests/testdata/clips/*
 .env
 .idea/
 .vscode/
+
+# Generated Python gRPC stubs (made by ml-service/scripts/gen_proto.py)
+ml-service/app/gen/
+.pytest_cache/
+
+# Local cost logs and encode outputs
+*.jsonl

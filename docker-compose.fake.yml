@@ -1,0 +1,16 @@
+# Test-double override: the whole pipeline without any model.
+#
+#   docker compose -f docker-compose.yml -f docker-compose.fake.yml up -d
+#
+# The fake backends find solid red / blue / green rectangles (see
+# ml-service/app/backends/fake.py). They start in seconds and need no weights, so they
+# are for checking the plumbing (ports, gRPC contract, Go client), never for results.
+
+services:
+  detector:
+    environment:
+      VIREX_DETECTOR_BACKEND: fake
+  ocr:
+    environment:
+      VIREX_OCR_BACKEND: fake
+      VIREX_FAKE_OCR_TEXT: "FAKE TEXT"

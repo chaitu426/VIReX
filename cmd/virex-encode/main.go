@@ -36,13 +36,19 @@ func run(args []string) int {
 		n        = fs.Int("n", 0, "every_n: frames between samples")
 		secs     = fs.Float64("seconds", 0, "every_seconds: seconds between samples")
 		noSample = fs.Bool("no-sample", false, "skip the sampling pass")
-		semantic = fs.String("semantic", "", "SVIR content: empty or fake")
+		semantic = fs.String("semantic", "", "SVIR content: empty, fake or ml (real detection/OCR, needs the ML containers)")
+		mlDetect = fs.String("ml-detect", "", "ml: detector address host:port (default 127.0.0.1:50051)")
+		mlOCR    = fs.String("ml-ocr", "", "ml: OCR address host:port (default 127.0.0.1:50052)")
+		mlWork   = fs.Int("ml-workers", 0, "ml: frames analysed in parallel (default 4)")
+		noOCR    = fs.Bool("ml-no-ocr", false, "ml: do not run OCR")
+		noDetect = fs.Bool("ml-no-detect", false, "ml: do not run object detection")
 		split    = fs.Bool("split-layers", false, "one SEMANTIC section per layer")
 		costLog  = fs.String("cost-log", "", "append JSON-lines cost records to this file")
 		quiet    = fs.Bool("q", false, "print nothing but errors")
 	)
 	valued := map[string]bool{"o": true, "config": true, "pixel": true, "crf": true, "preset": true, "gop": true,
-		"sample": true, "n": true, "seconds": true, "semantic": true, "cost-log": true}
+		"sample": true, "n": true, "seconds": true, "semantic": true, "cost-log": true,
+		"ml-detect": true, "ml-ocr": true, "ml-workers": true}
 	input, rest := splitInput(args, valued)
 	if err := fs.Parse(rest); err != nil {
 		return 2
@@ -100,6 +106,21 @@ func run(args []string) int {
 	if *semantic != "" {
 		cfg.Semantic = *semantic
 	}
+	if *mlDetect != "" {
+		cfg.ML.DetectAddr = *mlDetect
+	}
+	if *mlOCR != "" {
+		cfg.ML.OCRAddr = *mlOCR
+	}
+	if *mlWork != 0 {
+		cfg.ML.Workers = *mlWork
+	}
+	cfg.ML.NoOCR = cfg.ML.NoOCR || *noOCR
+	cfg.ML.NoDetect = cfg.ML.NoDetect || *noDetect
+	if cfg.Semantic == pipeline.SemanticML && *cfgPath == "" && *sample == "" && *n == 0 && *secs == 0 {
+		// Tracking needs a frame at least every second or so; the Phase 1 default allows 10 s.
+		cfg.Sampler.MaxGapSeconds = 1
+	}
 	if *split {
 		cfg.SplitLayers = true
 	}
@@ -135,6 +156,15 @@ func run(args []string) int {
 		fmt.Printf("  pixel      %s mode\n", rep.PixelMode)
 		if !cfg.SkipSampling {
 			fmt.Printf("  sampled    %d frames (%s)\n", rep.Sampled, cfg.Sampler.Mode)
+		}
+		if sm := rep.Semantic; sm != nil {
+			for _, m := range sm.Models {
+				fmt.Printf("  model      %s: %s (%s, %s)\n", m.Role, m.Name, m.Version, m.Device)
+			}
+			fmt.Printf("  semantic   %d entities, %d events, %d actions, %d relations, %d text blocks, %d shots\n",
+				sm.Entities, sm.Events, sm.Actions, sm.Relations, sm.Texts, sm.Shots)
+			fmt.Printf("  ml calls   %d detect, %d ocr (%d reused), %.1fs model time\n",
+				sm.DetectCalls, sm.OCRCalls, sm.OCRReused, sm.InferenceMS/1000)
 		}
 		fmt.Printf("  size       source %s, pixel stream %s, .virex %s\n", mb(rep.SourceBytes), mb(rep.PixelBytes), mb(rep.OutputBytes))
 		fmt.Printf("  time       %.2fs\n", time.Since(start).Seconds())

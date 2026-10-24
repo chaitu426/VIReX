@@ -99,3 +99,21 @@ Rules to keep it clean:
 
 Go, FFmpeg and protoc are installed on the Phase 1 machine and `go build ./...` passes. Regenerate the schema with:
 `protoc -I svir/schema --go_out=svir/schema --go_opt=paths=source_relative svir/schema/svir.proto`
+
+## Phase 2 additions
+
+```text
+proto/ml/v1/ml.proto       Go <-> Python contract (ObjectDetector, TextReader); Go stubs committed
+ml-service/                Python service + Dockerfile (build context is the repo root)
+docker-compose.yml         detector (:50051) and ocr (:50052); .gpu.yml and .fake.yml overrides
+semantic/mlclient          gRPC transport: retries, timeouts, image encoding
+semantic/objects, ocr      typed clients (Detector / Reader interfaces)
+semantic/analyze           parallel, ordered analysis of sampled frames; OCR reuse for unchanged frames
+semantic/mltest            in-process fake ML server for tests
+temporal/tracker           object tracker (IoU + Hungarian) and text tracker
+temporal/engine            events, actions, relations (rules: docs/phase-2-rules.md)
+temporal/graph             semantic graph, timelines, SVIR generation
+configs/phase2.json        full config for virex-encode -semantic ml
+```
+
+Run the ML containers: `docker compose up -d`; see `docs/phase-2-summary.md` section 4.
